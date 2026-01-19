@@ -33,6 +33,11 @@ then
 ```aiignore
 sail up -d
 sail artisan key:generate
-sail artisan migrate
+sail artisan migrate:fresh --seed
 ```
+
+## Login Credentials (For Testing)
+**Super Admin:**
+- Email: tan@cloth.com
+- Password: asdf1234
 
