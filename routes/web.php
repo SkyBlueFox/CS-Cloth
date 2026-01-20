@@ -39,12 +39,20 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
+
+    // orders
     Route::get('/admin/orders', [AdminController::class, 'index'])
         ->name('admin.orders.index');
     Route::patch('/admin/orders/{order}/ship', [AdminController::class, 'ship'])
         ->name('admin.orders.ship');
     Route::patch('/admin/orders/{order}/approve-refund', [AdminController::class, 'approveRefund'])
         ->name('admin.orders.approve-refund');
+
+    // items
+    Route::get('/admin/items/create', [AdminController::class, 'createItem'])
+        ->name('admin.items.create');
+    Route::post('/admin/items', [AdminController::class, 'storeItem'])
+        ->name('admin.items.store');
 });
 
 Route::post('/questions/{id}/report', [ReportController::class, 'store'])

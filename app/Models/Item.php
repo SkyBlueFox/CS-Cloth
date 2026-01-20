@@ -9,11 +9,11 @@ class Item extends Model
     protected $fillable = [
         'name',
         'created_by_id',
-        'created_by_name',
         'description',
         'price',
         'stock',
         'image_path',
+        'is_active',
     ];
 
     public function questions()

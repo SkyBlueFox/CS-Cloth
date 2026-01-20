@@ -41,7 +41,6 @@ class DatabaseSeeder extends Seeder
         $item1 = Item::create([
             'name' => 'Item 1',
             'created_by_id' => $admin1->id, // Uses real ID (likely 2)
-            'created_by_name' => $admin1->name,
             'description' => 'Item 1 description',
             'price' => 100,
             'stock' => 100,
@@ -102,7 +101,6 @@ class DatabaseSeeder extends Seeder
         $shirt = Item::create([
             'name' => 'KU CS T-Shirt',
             'created_by_id' => $admin1->id,
-            'created_by_name' => $admin1->name,
             'description' => 'Standard issue CS shirt. 100% Cotton.',
             'price' => 250,
             'stock' => 50,
@@ -112,7 +110,6 @@ class DatabaseSeeder extends Seeder
         $hoodie = Item::create([
             'name' => 'Tech Faculty Hoodie',
             'created_by_id' => $admin1->id,
-            'created_by_name' => $admin1->name,
             'description' => 'Warm polyester hoodie for the cold labs.',
             'price' => 600,
             'stock' => 20,
@@ -122,7 +119,6 @@ class DatabaseSeeder extends Seeder
         $sticker = Item::create([
             'name' => 'Laptop Sticker Pack',
             'created_by_id' => $admin1->id,
-            'created_by_name' => $admin1->name,
             'description' => 'Vinyl stickers for your ThinkPad.',
             'price' => 50,
             'stock' => 100,

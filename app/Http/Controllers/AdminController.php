@@ -60,4 +60,38 @@ class AdminController extends Controller
 
         return back()->with('success', 'Refund approved. Stock and Wallet restored.');
     }
+
+    public function createItem()
+    {
+        return view('admin.items.create');
+    }
+
+    public function storeItem(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:5000',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'image' => 'nullable|image|max:10240', // 10MB Max
+        ]);
+
+        $path = null;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('items', 'public');
+        }
+
+        Item::create([
+            'name' => $validated['name'],
+            'created_by_id' => auth()->id(),
+
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+            'stock' => $validated['stock'],
+            'image_path' => $path,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.items.create')->with('success', 'Item posted successfully!');
+    }
 }
