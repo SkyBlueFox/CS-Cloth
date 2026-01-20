@@ -19,21 +19,21 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Tan SuperAdmin',
             'email' => 'tan@cloth.com',
-            'password' => Hash::make('asdf1234'),
+            'password' => Hash::make('asd123'),
             'role' => User::ROLE_SUPERADMIN,
         ]);
 
         User::create([
             'name' => 'Admin 1',
             'email' => 'admin@cloth.com',
-            'password' => Hash::make('asdf1234'),
+            'password' => Hash::make('asd123'),
             'role' => User::ROLE_ADMIN,
         ]);
 
         User::create([
             'name' => 'Test Customer',
             'email' => 'exp@cloth.com',
-            'password' => Hash::make('asdf1234'),
+            'password' => Hash::make('asd123'),
             'role' => User::ROLE_USER,
         ]);
     }

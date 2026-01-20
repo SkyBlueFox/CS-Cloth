@@ -39,5 +39,13 @@ sail artisan migrate:fresh --seed
 ## Login Credentials (For Testing)
 **Super Admin:**
 - Email: tan@cloth.com
-- Password: asdf1234
+- Password: asd123
+
+**Admin:**
+- Email: admin@cloth.com
+- Password: asd123
+
+**Normal User:**
+- Email: exp@cloth.com
+- Password: asd123
 
