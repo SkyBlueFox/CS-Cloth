@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Manage Admins') }}
+            {{ __('Manage Users') }}
         </h2>
     </x-slot>
 
@@ -10,9 +10,9 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-bold mb-4">Create New Admin</h3>
+                    <h3 class="text-lg font-bold mb-4">Create New User</h3>
 
-                    <form method="POST" action="{{ route('superadmin.store-admin') }}">
+                    <form method="POST" action="{{ route('superadmin.store-user') }}">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -45,7 +45,7 @@
 
                         <div class="flex items-center justify-end mt-4">
                             <button type="submit" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                + Create Admin
+                                + Create User
                             </button>
                         </div>
                     </form>
@@ -54,10 +54,10 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-bold mb-4">Current Admins</h3>
+                    <h3 class="text-lg font-bold mb-4">Current Customers</h3>
 
-                    @if($admins->isEmpty())
-                        <p class="text-gray-500">No admins found.</p>
+                    @if($users->isEmpty())
+                        <p class="text-gray-500">No users found.</p>
                     @else
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -69,23 +69,23 @@
                             </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($admins as $admin)
+                            @foreach($users as $user)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $admin->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $admin->email }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->email }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $admin->created_at->format('M d, Y H:i') }}
+                                        {{ $user->created_at->format('M d, Y H:i') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        @if($admin->id !== auth()->id())
+                                        @if($user->id !== auth()->id())
                                             <div class="flex space-x-3">
-                                                <a href="{{ route('superadmin.admins.edit', $admin->id) }}"
+                                                <a href="{{ route('superadmin.users.edit', $user->id) }}"
                                                    class="text-indigo-600 hover:text-indigo-900 font-bold">
                                                     Edit
                                                 </a>
 
-                                                <form method="POST" action="{{ route('superadmin.admins.destroy', $admin->id) }}"
-                                                      onsubmit="return confirm('Are you sure you want to delete this admin? This cannot be undone.');">
+                                                <form method="POST" action="{{ route('superadmin.users.destroy', $user->id) }}"
+                                                      onsubmit="return confirm('Are you sure you want to delete this user? This cannot be undone.');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-900 font-bold">

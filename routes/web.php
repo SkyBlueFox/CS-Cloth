@@ -26,10 +26,38 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
+
+    // admins
     Route::get('/superadmin/create-admin', [SuperAdminController::class, 'createAdmin'])
-        ->name('superadmin.create');
+        ->name('superadmin.create-admin');
     Route::post('/superadmin/store-admin', [SuperAdminController::class, 'storeAdmin'])
-        ->name('superadmin.store');
+        ->name('superadmin.store-admin');
+        // edit Admin
+    Route::get('/superadmin/admins/{user}/edit', [SuperAdminController::class, 'editAdmin'])
+        ->name('superadmin.admins.edit');
+        // update Admin
+    Route::patch('/superadmin/admins/{user}', [SuperAdminController::class, 'updateAdmin'])
+        ->name('superadmin.admins.update');
+        // delete Admin
+    Route::delete('/superadmin/admins/{user}', [SuperAdminController::class, 'destroyAdmin'])
+        ->name('superadmin.admins.destroy');
+
+    // users
+    Route::get('/superadmin/create-user', [SuperAdminController::class, 'createUser'])
+        ->name('superadmin.create-user');
+    Route::post('/superadmin/store-user', [SuperAdminController::class, 'storeUser'])
+        ->name('superadmin.store-user');
+        // edit user
+    Route::get('/superadmin/users/{user}/edit', [SuperAdminController::class, 'editUser'])
+        ->name('superadmin.users.edit');
+        // update usr
+    Route::patch('/superadmin/users/{user}', [SuperAdminController::class, 'updateUser'])
+        ->name('superadmin.users.update');
+        // delete user
+    Route::delete('/superadmin/users/{user}', [SuperAdminController::class, 'destroyUser'])
+        ->name('superadmin.users.destroy');
+
+    // reports
     Route::get('/superadmin/reports', [SuperAdminController::class, 'reports']
     )->name('superadmin.reports');
     Route::patch('/superadmin/reports/{report}/resolve', [SuperAdminController::class, 'resolve'])
