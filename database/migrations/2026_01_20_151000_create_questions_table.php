@@ -18,13 +18,18 @@ return new class extends Migration {
                 ->constrained('users')
                 ->cascadeOnDelete();
 
+            $table->string('asker_name');
+
             $table->foreignId('admin_id')
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
 
+            $table->string('admin_name')->nullable();
+
             $table->text('question_text');
             $table->text('answer_text')->nullable();
+            $table->integer('score_cached')->default('0');
 
             $table->timestamps();
             $table->softDeletes();

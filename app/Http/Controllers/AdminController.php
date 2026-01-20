@@ -6,9 +6,9 @@ use App\Models\Item;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -87,7 +87,6 @@ class AdminController extends Controller
             'name' => $validated['name'],
             'created_by_id' => Auth::id(),
 
-
             'description' => $validated['description'],
             'price' => $validated['price'],
             'stock' => $validated['stock'],
@@ -95,6 +94,64 @@ class AdminController extends Controller
             'is_active' => true,
         ]);
 
-        return redirect()->route('admin.items.create')->with('success', 'Item posted successfully!');
+        return redirect()->route('admin.items.index')->with('success', 'Item posted successfully!');
+    }
+
+    public function indexItems()
+    {
+        // Fetch items, latest first, 10 per page
+        $items = Item::latest()->paginate(10);
+        return view('admin.items.index', compact('items'));
+    }
+
+    public function editItem(Item $item)
+    {
+        return view('admin.items.edit', compact('item'));
+    }
+
+    public function updateItem(Request $request, Item $item)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:5000',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'image' => 'nullable|image|max:10240', // 10MB Max
+        ]);
+
+        // Handle Image Replacement
+        if ($request->hasFile('image')) {
+            // Optional: Delete old image to save space
+            if ($item->image_path) {
+                Storage::disk('public')->delete($item->image_path);
+            }
+            $item->image_path = $request->file('image')->store('items', 'public');
+        }
+
+        $item->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+            'stock' => $validated['stock'],
+            // image_path is updated directly above if needed
+        ]);
+
+        return redirect()->route('admin.items.index')->with('success', 'Item updated successfully.');
+    }
+
+    public function toggleItem(Item $item)
+    {
+        // Flip the boolean
+        $item->is_active = !$item->is_active;
+        $item->save();
+
+        $status = $item->is_active ? 'Active (Selling)' : 'Inactive (Hidden)';
+        return back()->with('success', "Item is now $status.");
+    }
+
+    public function destroyItem(Item $item)
+    {
+        $item->delete();
+        return back()->with('success', 'Item deleted.');
     }
 }
