@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -36,5 +37,30 @@ class SuperAdminController extends Controller
         ]);
 
         return redirect()->route('dashboard')->with('success', 'New Admin created successfully!');
+    }
+
+    public function reports()
+    {
+        $reports = Report::latest()->paginate(10);
+
+        return view('superadmin.reports', compact('reports'));
+    }
+
+    public function resolve(Report $report)
+    {
+        $report->update([
+            'status' => Report::STATUS_RESOLVED
+        ]);
+
+        return back()->with('success', 'Report resolved successfully.');
+    }
+
+    public function dismiss(Report $report)
+    {
+        $report->update([
+            'status' => Report::STATUS_DISMISSED
+        ]);
+
+        return back()->with('success', 'Report dismissed.');
     }
 }

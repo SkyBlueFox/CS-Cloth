@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 
@@ -23,6 +24,16 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
         ->name('superadmin.create');
     Route::post('/superadmin/store-admin', [SuperAdminController::class, 'storeAdmin'])
         ->name('superadmin.store');
+    Route::get('/superadmin/reports', [SuperAdminController::class, 'reports']
+    )->name('superadmin.reports');
+    Route::patch('/superadmin/reports/{report}/resolve', [SuperAdminController::class, 'resolve'])
+        ->name('superadmin.reports.resolve');
+    Route::patch('/superadmin/reports/{report}/dismiss', [SuperAdminController::class, 'dismiss'])
+        ->name('superadmin.reports.dismiss');
 });
+
+Route::post('/questions/{id}/report', [ReportController::class, 'store'])
+    ->middleware(['auth', 'verified', 'role:user'])
+    ->name('reports.store');
 
 require __DIR__.'/auth.php';
