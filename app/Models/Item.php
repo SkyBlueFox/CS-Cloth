@@ -26,6 +26,7 @@ class Item extends Model
 
     public function questions()
     {
-        return $this->hasMany(Question::class);
+        return $this->hasMany(\App\Models\Question::class, 'item_id');
     }
+
 }
