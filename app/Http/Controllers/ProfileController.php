@@ -26,6 +26,11 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        // SECURITY: Block Admins from editing their own profile
+        if ($request->user()->role === User::ROLE_ADMIN) {
+            return Redirect::route('profile.edit')->with('status', 'Admins cannot modify their profile.');
+        }
+
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
