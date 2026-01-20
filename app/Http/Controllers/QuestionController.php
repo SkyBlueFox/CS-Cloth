@@ -1,79 +1,83 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Question;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-
 
 class QuestionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    private function ensureAdmin(Request $request): void
     {
-        //
+        $role = $request->user()->role ?? null;
+        abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        $this->ensureAdmin($request);
+
+        $onlyUnanswered = $request->boolean('unanswered');
+        $search = trim((string) $request->query('q', ''));
+
+        $query = Question::query()
+            ->with(['item', 'asker', 'admin'])
+            ->latest();
+
+        if ($onlyUnanswered) {
+            $query->whereNull('answer_text');
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('question_text', 'like', "%{$search}%")
+                  ->orWhere('answer_text', 'like', "%{$search}%");
+            });
+        }
+
+        $questions = $query->paginate(15)->withQueryString();
+
+        return view('admin.questions.index', compact('questions'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request, $itemId)
+    public function answer(Request $request, Question $question)
     {
+        $this->ensureAdmin($request);
+
         $request->validate([
-            'question_text' => 'required|string|max:255',
+            'answer_text' => ['required', 'string', 'max:2000'],
         ]);
 
-        Question::create([
-            'item_id' => $request->item_id,
-            'asker_id' => Auth::id(),
-            'asker_name' => Auth::user()->name,
+        $me = $request->user();
 
-            'question_text' => $request->question_text,
-        ]);
 
-        return back()->with('success', 'Question posted! Waiting for an admin to answer.');
+        if ($question->admin_id === null) {
+            $question->admin_id = $me->id;
+            $question->admin_name = $me->name;
+        }
+
+        abort_unless($question->admin_id === $me->id, 403);
+
+        $question->answer_text = $request->input('answer_text');
+        $question->save();
+
+        return back()->with('success', 'Answer saved.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Question $question)
+    public function deleteAnswer(Request $request, Question $question)
     {
-        //
-    }
+        $this->ensureAdmin($request);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Question $question)
-    {
-        //
-    }
+        $me = $request->user();
+        abort_unless($question->admin_id === $me->id, 403);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Question $question)
-    {
-        //
-    }
+        $question->answer_text = null;
+        $question->admin_id = null;
+        $question->admin_name = null;
+        $question->save();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Question $question)
-    {
-        //
+        return back()->with('success', 'Answer removed.');
     }
 }

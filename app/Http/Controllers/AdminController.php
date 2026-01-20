@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 class AdminController extends Controller
 {
@@ -83,7 +85,8 @@ class AdminController extends Controller
 
         Item::create([
             'name' => $validated['name'],
-            'created_by_id' => auth()->id(),
+            'created_by_id' => Auth::id(),
+
 
             'description' => $validated['description'],
             'price' => $validated['price'],
