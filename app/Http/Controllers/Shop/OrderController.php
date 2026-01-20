@@ -27,48 +27,52 @@ class OrderController extends Controller
     {
         $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:' . $item->stock],
-            'shipping_address' => ['required', 'string', 'max:2000'], // Address should be required to ship!
+            'shipping_address' => ['required', 'string', 'max:2000'],
         ]);
 
-        abort_unless($item->is_active, 404);
+        if (!$item->is_active) {
+            return back()->with('error', 'สินค้านี้ไม่พร้อมจำหน่าย (Item is not active)');
+        }
 
-        DB::transaction(function () use ($request, $item) {
-            $qty = (int) $request->input('quantity');
+        // Use a try-catch to handle errors inside the transaction gracefully
+        try {
+            DB::transaction(function () use ($request, $item) {
+                $qty = (int) $request->input('quantity');
 
-            // Lock the item to prevent double-selling
-            $lockedItem = Item::query()->whereKey($item->id)->lockForUpdate()->first();
-            if ($lockedItem->stock < $qty) {
-                abort(400, 'สต็อกไม่พอ (Out of stock)');
-            }
+                $lockedItem = Item::query()->whereKey($item->id)->lockForUpdate()->first();
+                if ($lockedItem->stock < $qty) {
+                    // Throwing an exception inside the transaction triggers an automatic ROLLBACK
+                    throw new \Exception('สต็อกไม่พอ (Out of stock)');
+                }
 
-            $total = $lockedItem->price * $qty;
+                $total = $lockedItem->price * $qty;
+                $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
 
-            // Lock the user to prevent spending money twice
-            $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
+                if ($user->balance < $total) {
+                    throw new \Exception('ยอดเงินไม่พอ (Insufficient balance)');
+                }
 
-            // Check balance (Using your new 'balance' column)
-            if ($user->balance < $total) {
-                abort(400, 'ยอดเงินไม่พอ (Insufficient balance)');
-            }
+                $order = Order::create([
+                    'buyer_id' => $user->id,
+                    'status' => 'pending',
+                    'total_price' => $total,
+                    'shipping_address' => $request->input('shipping_address'),
+                ]);
 
-            $order = Order::create([
-                'buyer_id' => $user->id,
-                'status' => 'pending',
-                'total_price' => $total,
-                'shipping_address' => $request->input('shipping_address'),
-            ]);
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'item_id' => $lockedItem->id,
+                    'quantity' => $qty,
+                    'price_at_purchase' => $lockedItem->price,
+                ]);
 
-            OrderItem::create([
-                'order_id' => $order->id,
-                'item_id' => $lockedItem->id,
-                'quantity' => $qty,
-                'price_at_purchase' => $lockedItem->price,
-            ]);
-
-            // Deduct both
-            $lockedItem->decrement('stock', $qty);
-            $user->decrement('balance', $total);
-        });
+                $lockedItem->decrement('stock', $qty);
+                $user->decrement('balance', $total);
+            });
+        } catch (\Exception $e) {
+            // Redirect back with the specific error message from the Exception
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('orders.index')->with('success', 'สั่งซื้อเรียบร้อย');
     }
