@@ -1,6 +1,5 @@
-@extends('layouts.app')
+<x-app-layout>
 
-@section('content')
 <div class="max-w-5xl mx-auto p-6">
   <a class="text-sm underline" href="{{ route('shop.index') }}">← Back</a>
 
@@ -44,4 +43,4 @@
   </div>
   @endauth
 </div>
-@endsection
+</x-app-layout>>
