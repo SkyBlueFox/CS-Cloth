@@ -1,57 +1,42 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Question;
 use Illuminate\Http\Request;
 
 class QuestionController extends Controller
 {
-
-    private function ensureAdmin(Request $request): void
+    public function index(Request $request)
     {
         $role = $request->user()->role ?? null;
         abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
-    }
-
-    public function index(Request $request)
-    {
-        $this->ensureAdmin($request);
 
         $onlyUnanswered = $request->boolean('unanswered');
-        $search = trim((string) $request->query('q', ''));
 
-        $query = Question::query()
+        $q = Question::query()
             ->with(['item', 'asker', 'admin'])
             ->latest();
 
         if ($onlyUnanswered) {
-            $query->whereNull('answer_text');
+            $q->whereNull('answer_text');
         }
 
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('question_text', 'like', "%{$search}%")
-                  ->orWhere('answer_text', 'like', "%{$search}%");
-            });
-        }
+        $questions = $q->paginate(15)->withQueryString();
 
-        $questions = $query->paginate(15)->withQueryString();
-
-        return view('admin.questions.index', compact('questions'));
+        return view('admin.questions', compact('questions'));
     }
 
     public function answer(Request $request, Question $question)
     {
-        $this->ensureAdmin($request);
+        $role = $request->user()->role ?? null;
+        abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
 
         $request->validate([
             'answer_text' => ['required', 'string', 'max:2000'],
         ]);
 
         $me = $request->user();
-
 
         if ($question->admin_id === null) {
             $question->admin_id = $me->id;
@@ -68,15 +53,18 @@ class QuestionController extends Controller
 
     public function deleteAnswer(Request $request, Question $question)
     {
-        $this->ensureAdmin($request);
+        $role = $request->user()->role ?? null;
+        abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
 
         $me = $request->user();
         abort_unless($question->admin_id === $me->id, 403);
 
-        $question->answer_text = null;
-        $question->admin_id = null;
-        $question->admin_name = null;
-        $question->save();
+        $question->update([
+            'answer_text' => null,
+            'admin_id' => null,
+            'admin_name' => null,
+            'score_cached' => 0,
+        ]);
 
         return back()->with('success', 'Answer removed.');
     }
