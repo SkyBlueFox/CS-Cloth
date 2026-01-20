@@ -20,20 +20,33 @@ class ReportController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Question $question)
     {
-        //
+        if (!$question->answer_text) {
+            return back()->with('error', 'You cannot report a question that has not been answered yet.');
+        }
+
+        return view('reports.create', compact('question'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, $questionId)
+    public function store(Request $request, Question $question)
     {
-        $question = Question::with('answer.user')->findOrFail($questionId);
+        $question->load('admin');
+
+        $hasActiveReport = Report::where('question_id', $question->id)
+            ->where('reporter_id', Auth::id())
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($hasActiveReport) {
+            return redirect()->route('questions.index')->with('error', 'You already have a report pending for this answer.');
+        }
 
         $request->validate([
-            'reason' => 'required|string|max:255',
+            'reason' => 'required|string|min:10|max:255',
         ]);
 
         Report::create([
@@ -44,14 +57,14 @@ class ReportController extends Controller
             'admin_name' => $question->admin ? $question->admin->name : 'Unassigned',
             'question_id' => $question->id,
 
-            'question_text_snapshot' => $question->content,
-            'answer_text_snapshot'   => $question->answer->content,
+            'question_text_snapshot' => $question->question_text,
+            'answer_text_snapshot'   => $question->answer_text,
 
             'reason' => $request->reason,
             'status' => Report::STATUS_PENDING,
         ]);
 
-        return back()->with('success', 'Report submitted successfully.');
+        return redirect()->route('questions.index')->with('success', 'Report submitted successfully.');
     }
 
     /**

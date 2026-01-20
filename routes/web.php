@@ -46,6 +46,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/questions/{question}/report', [ReportController::class, 'create'])
+        ->name('reports.create');
+    Route::post('/questions/{question}/report', [ReportController::class, 'store'])
+        ->name('reports.store');
+});
+
+
+
 /**
  * SUPERADMIN
  */

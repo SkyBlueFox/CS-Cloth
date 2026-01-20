@@ -16,6 +16,7 @@
                 <tr>
                     <th class="text-left p-3">Item</th>
                     <th class="text-left p-3">Question</th>
+                    <th class="text-left p-3">Answer</th>
                     <th class="text-left p-3">Status</th>
                     <th class="text-left p-3">Created</th>
                 </tr>
@@ -29,6 +30,7 @@
                             </a>
                         </td>
                         <td class="p-3">{{ $q->question_text }}</td>
+                        <td class="p-3">{{ $q->answer_text ?? '-' }}</td>
                         <td class="p-3">
                             @if($q->answer_text)
                                 <span class="px-2 py-1 rounded bg-green-100 text-green-800">Answered</span>
@@ -37,10 +39,30 @@
                             @endif
                         </td>
                         <td class="p-3">{{ $q->created_at?->format('Y-m-d H:i') }}</td>
+                        <td class="p-3">
+                            @if($q->answer_text)
+                                {{-- Only hide the button if there is an UNRESOLVED report --}}
+                                @php
+                                    $hasActiveReport = $q->reports()
+                                        ->where('reporter_id', Auth::id())
+                                        ->where('status', 'pending') // Only block if it's still being reviewed
+                                        ->exists();
+                                @endphp
+
+                                @if($hasActiveReport)
+                                    <span class="text-gray-400 text-xs italic">Report Pending</span>
+                                @else
+                                    <a href="{{ route('reports.create', $q) }}"
+                                       class="text-red-600 hover:text-red-900 text-xs font-bold underline">
+                                        Report Answer
+                                    </a>
+                                @endif
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td class="p-3 text-gray-500" colspan="4">No questions.</td>
+                        <td class="p-3 text-gray-500" colspan="5">No questions.</td>
                     </tr>
                 @endforelse
             </tbody>
