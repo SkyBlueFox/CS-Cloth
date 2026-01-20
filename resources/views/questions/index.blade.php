@@ -1,39 +1,55 @@
 <x-app-layout>
-<div class="max-w-5xl mx-auto p-6">
-    <h1 class="text-2xl font-semibold mb-4">My Questions</h1>
 
-    <div class="space-y-4">
-        @forelse($questions as $q)
-            <div class="border rounded p-4">
-                <div class="text-sm text-gray-600">
-                    Item:
-                    <a class="underline"
-                       href="{{ route('shop.items.show', $q->item_id) }}">
-                        {{ $q->item?->name ?? ('#'.$q->item_id) }}
-                    </a>
-                    • {{ optional($q->created_at)->format('Y-m-d H:i') }}
-                </div>
+<div class="max-w-5xl mx-auto py-6 space-y-4">
 
-                <div class="mt-2 whitespace-pre-wrap"><b>Q:</b> {{ $q->question_text }}</div>
+    <h1 class="text-2xl font-bold">My Questions</h1>
 
-                @if(!empty($q->answer_text))
-                    <div class="mt-3 p-3 bg-gray-50 rounded">
-                        <div class="text-sm text-gray-600">
-                            Answered by <b>{{ $q->admin_name ?? ($q->admin?->name ?? 'Admin') }}</b>
-                        </div>
-                        <div class="mt-1 whitespace-pre-wrap"><b>A:</b> {{ $q->answer_text }}</div>
-                    </div>
-                @else
-                    <div class="mt-3 text-sm text-gray-500">No answer yet.</div>
-                @endif
-            </div>
-        @empty
-            <div class="text-sm text-gray-500">No questions yet.</div>
-        @endforelse
+    @if(session('success'))
+        <div class="p-3 rounded bg-green-100 text-green-800">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="bg-white shadow rounded overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left p-3">Item</th>
+                    <th class="text-left p-3">Question</th>
+                    <th class="text-left p-3">Status</th>
+                    <th class="text-left p-3">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($questions as $q)
+                    <tr class="border-t">
+                        <td class="p-3">
+                            <a class="underline" href="{{ route('shop.items.show', $q->item) }}">
+                                {{ $q->item?->name ?? 'Item' }}
+                            </a>
+                        </td>
+                        <td class="p-3">{{ $q->question_text }}</td>
+                        <td class="p-3">
+                            @if($q->answer_text)
+                                <span class="px-2 py-1 rounded bg-green-100 text-green-800">Answered</span>
+                            @else
+                                <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-800">Pending</span>
+                            @endif
+                        </td>
+                        <td class="p-3">{{ $q->created_at?->format('Y-m-d H:i') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td class="p-3 text-gray-500" colspan="4">No questions.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
-    <div class="mt-6">
-        {{ $questions->links() }}
-    </div>
+    <div>{{ $questions->links() }}</div>
+
 </div>
+
+
 </x-app-layout>

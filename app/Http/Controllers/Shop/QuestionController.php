@@ -6,38 +6,39 @@ use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Models\Question;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
-    public function store(Request $request, Item $item)
+    // USER: My Questions
+    public function index()
     {
-        $request->validate([
-            'question_text' => ['required', 'string', 'max:255'],
-        ]);
-
-        $user = $request->user();
-
-        Question::create([
-            'item_id'       => $item->id,
-            'asker_id'      => $user->id,
-            'asker_name'    => $user->name,
-            'question_text' => $request->input('question_text'),
-            'score_cached'  => 0,
-        ]);
-
-        return back()->with('success', 'Question posted! Waiting for an admin to answer.');
-    }
-
-    public function myQuestions(Request $request)
-    {
-        $user = $request->user();
-
-        $questions = Question::query()
-            ->with('item')
-            ->where('asker_id', $user->id)
+        $questions = Question::with('item')
+            ->where('asker_id', Auth::id())
             ->latest()
-            ->paginate(15);
+            ->paginate(10);
 
         return view('questions.index', compact('questions'));
+    }
+
+    // USER: Ask question on item page
+    public function store(Request $request, Item $item)
+    {
+        $validated = $request->validate([
+            'question_text' => 'required|string|max:255',
+        ]);
+
+        Question::create([
+            'item_id' => $item->id,
+            'asker_id' => Auth::id(),
+            'asker_name' => Auth::user()->name,
+            'question_text' => $validated['question_text'],
+            'answer_text' => null,
+            'admin_id' => null,
+            'admin_name' => null,
+            'score_cached' => 0,
+        ]);
+
+        return back()->with('success', 'ส่งคำถามแล้ว รอแอดมินตอบ');
     }
 }
