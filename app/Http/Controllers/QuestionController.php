@@ -9,29 +9,30 @@ class QuestionController extends Controller
 {
     public function index(Request $request)
     {
-        $role = $request->user()->role ?? null;
-        abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
-
         $onlyUnanswered = $request->boolean('unanswered');
 
-        $q = Question::query()
+        $query = Question::query()
             ->with(['item', 'asker', 'admin'])
             ->latest();
 
         if ($onlyUnanswered) {
-            $q->whereNull('answer_text');
+            $query->whereNull('answer_text');
         }
 
-        $questions = $q->paginate(15)->withQueryString();
+        if ($search = trim((string) $request->query('q', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('question_text', 'like', "%{$search}%")
+                  ->orWhere('answer_text', 'like', "%{$search}%");
+            });
+        }
+
+        $questions = $query->paginate(15)->withQueryString();
 
         return view('admin.questions', compact('questions'));
     }
 
     public function answer(Request $request, Question $question)
     {
-        $role = $request->user()->role ?? null;
-        abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
-
         $request->validate([
             'answer_text' => ['required', 'string', 'max:2000'],
         ]);
@@ -53,16 +54,13 @@ class QuestionController extends Controller
 
     public function deleteAnswer(Request $request, Question $question)
     {
-        $role = $request->user()->role ?? null;
-        abort_unless(in_array($role, ['admin', 'superadmin'], true), 403);
-
         $me = $request->user();
         abort_unless($question->admin_id === $me->id, 403);
 
         $question->update([
-            'answer_text' => null,
-            'admin_id' => null,
-            'admin_name' => null,
+            'answer_text'  => null,
+            'admin_id'     => null,
+            'admin_name'   => null,
             'score_cached' => 0,
         ]);
 

@@ -9,13 +9,11 @@ use Illuminate\Http\Request;
 
 class QuestionController extends Controller
 {
-    public function store(Request $request, $itemId)
+    public function store(Request $request, Item $item)
     {
         $request->validate([
             'question_text' => ['required', 'string', 'max:255'],
         ]);
-
-        $item = Item::findOrFail($itemId);
 
         $user = $request->user();
 
@@ -28,5 +26,18 @@ class QuestionController extends Controller
         ]);
 
         return back()->with('success', 'Question posted! Waiting for an admin to answer.');
+    }
+
+    public function myQuestions(Request $request)
+    {
+        $user = $request->user();
+
+        $questions = Question::query()
+            ->with('item')
+            ->where('asker_id', $user->id)
+            ->latest()
+            ->paginate(15);
+
+        return view('questions.index', compact('questions'));
     }
 }

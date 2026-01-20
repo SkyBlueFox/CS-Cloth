@@ -46,76 +46,56 @@
         </div>
     </div>
 
-    {{-- Questions section --}}
-    @php
-        // รองรับทั้งกรณี controller ส่ง $questions มา และกรณีไม่ส่งมา
-        if (!isset($questions)) {
-            $questions = method_exists($item, 'questions')
-                ? $item->questions()->latest()->get()
-                : collect();
-        }
-    @endphp
+    {{-- QUESTIONS --}}
+@php
+    $questions = $item->questions()->latest()->get();
+@endphp
 
-    <div class="mt-8 border rounded p-4">
-        <h2 class="text-xl font-semibold mb-3">Questions</h2>
+<div class="mt-8 border rounded p-4">
+    <h2 class="text-xl font-semibold mb-3">Questions</h2>
 
-        {{-- Ask form (เฉพาะ role user) --}}
-        @auth
-            @if((auth()->user()->role ?? null) === 'user')
-                <form method="POST" action="{{ route('shop.questions.store', $item->id) }}">
-                    @csrf
+    @if(session('success'))
+        <div class="mb-4 p-3 border rounded bg-green-50">{{ session('success') }}</div>
+    @endif
 
-                    <label class="block text-sm font-medium mb-1">Ask a question about this item</label>
-                    <textarea name="question_text"
-                              rows="3"
-                              class="w-full border rounded p-2"
-                              placeholder="Type your question...">{{ old('question_text') }}</textarea>
+    @auth
+        @if((auth()->user()->role ?? null) === 'user')
+            <form method="POST" action="{{ route('shop.questions.store', $item->id) }}">
+                @csrf
+                <textarea name="question_text" rows="3" class="w-full border rounded p-2"
+                          placeholder="Ask a question...">{{ old('question_text') }}</textarea>
+                @error('question_text')
+                    <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+                @enderror
+                <button class="mt-2 border rounded px-4 py-2">Send</button>
+            </form>
+        @endif
+    @endauth
 
-                    <button type="submit" class="mt-2 border rounded px-4 py-2">
-                        Send
-                    </button>
-                </form>
-            @endif
-        @endauth
-
-        <div class="mt-5 space-y-4">
-            @forelse($questions as $q)
-                <div class="border rounded p-3">
-                    <div class="text-sm text-gray-600">
-                        <b>{{ $q->asker_name ?? ($q->asker->name ?? 'User') }}</b>
-                        • {{ optional($q->created_at)->format('Y-m-d H:i') }}
-                    </div>
-
-                    <div class="mt-2 whitespace-pre-wrap">
-                        <b>Q:</b> {{ $q->question_text }}
-                    </div>
-
-                    <div class="mt-2">
-                        @if(!empty($q->answer_text))
-                            <div class="p-3 bg-gray-50 rounded">
-                                <div class="text-sm text-gray-600">
-                                    Answered by
-                                    <b>{{ $q->admin_name ?? ($q->admin->name ?? 'Admin') }}</b>
-                                </div>
-                                <div class="mt-1 whitespace-pre-wrap">
-                                    <b>A:</b> {{ $q->answer_text }}
-                                </div>
-                            </div>
-                        @else
-                            <div class="text-sm text-gray-500">
-                                No answer yet.
-                            </div>
-                        @endif
-                    </div>
+    <div class="mt-5 space-y-3">
+        @forelse($questions as $q)
+            <div class="border rounded p-3">
+                <div class="text-sm text-gray-600">
+                    <b>{{ $q->asker_name ?? ($q->asker->name ?? 'User') }}</b>
+                    • {{ optional($q->created_at)->format('Y-m-d H:i') }}
                 </div>
-            @empty
-                <div class="text-sm text-gray-500">
-                    No questions yet.
-                </div>
-            @endforelse
-        </div>
+                <div class="mt-1 whitespace-pre-wrap"><b>Q:</b> {{ $q->question_text }}</div>
+
+                @if(!empty($q->answer_text))
+                    <div class="mt-2 p-3 bg-gray-50 rounded">
+                        <div class="text-sm text-gray-600">
+                            Answered by <b>{{ $q->admin_name ?? ($q->admin->name ?? 'Admin') }}</b>
+                        </div>
+                        <div class="mt-1 whitespace-pre-wrap"><b>A:</b> {{ $q->answer_text }}</div>
+                    </div>
+                @else
+                    <div class="mt-2 text-sm text-gray-500">No answer yet.</div>
+                @endif
+            </div>
+        @empty
+            <div class="text-sm text-gray-500">No questions yet.</div>
+        @endforelse
     </div>
-
 </div>
 
 </x-app-layout>
