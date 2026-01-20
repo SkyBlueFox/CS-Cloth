@@ -31,36 +31,33 @@ class AdminController extends Controller
 
     public function approveRefund(Order $order)
     {
+        // 1. Ensure the order is actually in the 'refunding' state
         if ($order->status !== 'refunding') {
-            return back()->with('error', 'This order has not requested a refund.');
+            return back()->with('error', 'Order is not in a refundable state.');
         }
 
         DB::transaction(function () use ($order) {
-            // 1. Lock the order
-            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
+            // 2. Lock the order and the buyer
+            $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->first();
+            $buyer = User::query()->whereKey($order->buyer_id)->lockForUpdate()->first();
 
-            // 2. Update Status
-            $lockedOrder->status = 'refunded';
-            $lockedOrder->save();
+            // 3. Update Order Status
+            $lockedOrder->update([
+                'status' => 'refunded',
+                'refunded_at' => now(),
+            ]);
 
-            // 3. Restore Stock
+            // 4. Return Money to Wallet
+            $buyer->increment('balance', $lockedOrder->total_price);
+
+            // 5. OPTIONAL: Return items to stock
+            $lockedOrder->load('items');
             foreach ($lockedOrder->items as $orderItem) {
-                $item = Item::where('id', $orderItem->item_id)->lockForUpdate()->first();
-                if ($item) {
-                    $item->increment('stock', $orderItem->quantity);
-                }
-            }
-
-            // 4. Restore Money (Check if wallet exists first)
-            $user = User::where('id', $lockedOrder->buyer_id)->lockForUpdate()->first();
-            // Note: checking for the column existence in the model attribute or schema is safer
-            // but for now we follow the friend's pattern of checking property access
-            if ($user && isset($user->wallet_balance)) {
-                $user->increment('wallet_balance', $lockedOrder->total_price);
+                Item::whereKey($orderItem->item_id)->increment('stock', $orderItem->quantity);
             }
         });
 
-        return back()->with('success', 'Refund approved. Stock and Wallet restored.');
+        return back()->with('success', 'Refund approved. ฿' . number_format($order->total_price) . ' has been returned to ' . $order->buyer->name);
     }
 
     public function createItem()

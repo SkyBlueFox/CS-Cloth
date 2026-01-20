@@ -133,9 +133,19 @@
                     </div>
 
                     <div class="flex items-center ml-auto">
+                        {{-- Wallet Balance - Only for ROLE_USER --}}
+                        @if(Auth::user()->role === \App\Models\User::ROLE_USER)
+                            <div class="mr-6 flex items-center bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                <span class="text-sm font-bold text-green-700">
+                                    ฿{{ number_format(Auth::user()->balance) }}
+                                </span>
+                            </div>
+                        @endif
 
                         <div class="relative ml-3" x-data="{ dropdownOpen: false }">
-
                             <button @click="dropdownOpen = !dropdownOpen" class="flex items-center max-w-xs text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition duration-150 ease-in-out">
                                 <span>{{ Auth::user()->name }}</span>
                                 <svg class="ml-1 h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">

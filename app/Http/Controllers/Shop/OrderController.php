@@ -26,8 +26,8 @@ class OrderController extends Controller
     public function store(Request $request, Item $item)
     {
         $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:10'],
-            'shipping_address' => ['nullable', 'string', 'max:2000'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:' . $item->stock],
+            'shipping_address' => ['required', 'string', 'max:2000'], // Address should be required to ship!
         ]);
 
         abort_unless($item->is_active, 404);
@@ -35,20 +35,20 @@ class OrderController extends Controller
         DB::transaction(function () use ($request, $item) {
             $qty = (int) $request->input('quantity');
 
-
+            // Lock the item to prevent double-selling
             $lockedItem = Item::query()->whereKey($item->id)->lockForUpdate()->first();
             if ($lockedItem->stock < $qty) {
-                abort(400, 'สต็อกไม่พอ');
+                abort(400, 'สต็อกไม่พอ (Out of stock)');
             }
 
             $total = $lockedItem->price * $qty;
 
-
+            // Lock the user to prevent spending money twice
             $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
 
-
-            if (isset($user->wallet_balance) && $user->wallet_balance < $total) {
-                abort(400, 'ยอดเงินในกระเป๋าไม่พอ');
+            // Check balance (Using your new 'balance' column)
+            if ($user->balance < $total) {
+                abort(400, 'ยอดเงินไม่พอ (Insufficient balance)');
             }
 
             $order = Order::create([
@@ -65,11 +65,9 @@ class OrderController extends Controller
                 'price_at_purchase' => $lockedItem->price,
             ]);
 
+            // Deduct both
             $lockedItem->decrement('stock', $qty);
-
-            if (isset($user->wallet_balance)) {
-                $user->decrement('wallet_balance', $total);
-            }
+            $user->decrement('balance', $total);
         });
 
         return redirect()->route('orders.index')->with('success', 'สั่งซื้อเรียบร้อย');
@@ -77,32 +75,37 @@ class OrderController extends Controller
 
     public function cancel(Request $request, Order $order)
     {
+        // Ensure only the buyer can cancel their own order
         abort_unless($order->buyer_id === $request->user()->id, 403);
 
-        DB::transaction(function () use ($request, $order) {
-            $locked = Order::query()->whereKey($order->id)->lockForUpdate()->first();
-            abort_unless($locked->status === 'pending', 400);
+        DB::transaction(function () use ($order) {
+            // Lock the order to prevent double-canceling
+            $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->first();
 
-            $locked->status = 'cancelled';
-            $locked->cancelled_at = now();
-            $locked->save();
+            // Only pending orders can be cancelled and refunded
+            if ($lockedOrder->status !== 'pending') {
+                abort(400, 'สามารถยกเลิกได้เฉพาะออเดอร์ที่ยังรอดำเนินการเท่านั้น');
+            }
 
-            $locked->load('items.item');
+            $lockedOrder->status = 'cancelled';
+            $lockedOrder->cancelled_at = now();
+            $lockedOrder->save();
 
-            // คืนสต็อก
-            foreach ($locked->items as $oi) {
+            // Load items to return stock
+            $lockedOrder->load('items');
+
+            foreach ($lockedOrder->items as $oi) {
                 $it = Item::query()->whereKey($oi->item_id)->lockForUpdate()->first();
                 $it->increment('stock', $oi->quantity);
             }
 
-            // คืนเงิน
-            $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
-            if (isset($user->wallet_balance)) {
-                $user->increment('wallet_balance', $locked->total_price);
-            }
+            // --- INSTANT REFUND ---
+            // Find the buyer and lock their row
+            $buyer = User::query()->whereKey($lockedOrder->buyer_id)->lockForUpdate()->first();
+            $buyer->increment('balance', $lockedOrder->total_price);
         });
 
-        return back()->with('success', 'ยกเลิกออเดอร์แล้ว');
+        return back()->with('success', 'ยกเลิกออเดอร์และคืนเงินเรียบร้อยแล้ว');
     }
 
     public function requestRefund(Request $request, Order $order)

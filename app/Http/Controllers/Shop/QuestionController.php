@@ -30,6 +30,10 @@ class QuestionController extends Controller
      */
     public function store(Request $request, Item $item)
     {
+        if (empty($request->question_text)) {
+            return back()->with('info', 'Please type a question before submitting.');
+        }
+
         $validated = $request->validate([
             'question_text' => 'required|string|max:255',
         ]);
