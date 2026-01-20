@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Item;
+use App\Models\Order;
 use App\Models\Question;
 use App\Models\Report;
 use App\Models\User;
@@ -96,6 +97,65 @@ class DatabaseSeeder extends Seeder
 
             'reason' => "Rude answer",
             'status' => Report::STATUS_PENDING,
+        ]);
+
+        $shirt = Item::create([
+            'name' => 'KU CS T-Shirt',
+            'created_by_id' => $admin1->id,
+            'created_by_name' => $admin1->name,
+            'description' => 'Standard issue CS shirt. 100% Cotton.',
+            'price' => 250,
+            'stock' => 50,
+            'is_active' => true,
+        ]);
+
+        $hoodie = Item::create([
+            'name' => 'Tech Faculty Hoodie',
+            'created_by_id' => $admin1->id,
+            'created_by_name' => $admin1->name,
+            'description' => 'Warm polyester hoodie for the cold labs.',
+            'price' => 600,
+            'stock' => 20,
+            'is_active' => true,
+        ]);
+
+        $sticker = Item::create([
+            'name' => 'Laptop Sticker Pack',
+            'created_by_id' => $admin1->id,
+            'created_by_name' => $admin1->name,
+            'description' => 'Vinyl stickers for your ThinkPad.',
+            'price' => 50,
+            'stock' => 100,
+            'is_active' => true,
+        ]);
+
+        $order1 = Order::create([
+            'buyer_id' => $customer1->id, // Assuming $customer1 variable exists
+            'status' => 'pending',
+            'total_price' => 500, // 2 shirts
+            'shipping_address' => '123 Ngamwongwan Rd, Chatuchak, Bangkok',
+        ]);
+
+        \App\Models\OrderItem::create([
+            'order_id' => $order1->id,
+            'item_id' => $shirt->id,
+            'quantity' => 2,
+            'price_at_purchase' => 250,
+        ]);
+
+        $order2 = Order::create([
+            'buyer_id' => $customer1->id,
+            'status' => 'refunding', // The user requested a refund
+            'total_price' => 600, // 1 hoodie
+            'shipping_address' => 'Kasetsart University, Lab 404',
+            'refund_requested_at' => now(),
+        ]);
+
+        \App\Models\OrderItem::create([
+            'order_id' => $order2->id,
+            'item_id' => $hoodie->id,
+            'quantity' => 1,
+            'price_at_purchase' => 600,
         ]);
     }
 }

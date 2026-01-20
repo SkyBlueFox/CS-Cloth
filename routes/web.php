@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,15 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
         ->name('superadmin.reports.resolve');
     Route::patch('/superadmin/reports/{report}/dismiss', [SuperAdminController::class, 'dismiss'])
         ->name('superadmin.reports.dismiss');
+});
+
+Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    Route::get('/admin/orders', [AdminController::class, 'index'])
+        ->name('admin.orders.index');
+    Route::patch('/admin/orders/{order}/ship', [AdminController::class, 'ship'])
+        ->name('admin.orders.ship');
+    Route::patch('/admin/orders/{order}/approve-refund', [AdminController::class, 'approveRefund'])
+        ->name('admin.orders.approve-refund');
 });
 
 Route::post('/questions/{id}/report', [ReportController::class, 'store'])

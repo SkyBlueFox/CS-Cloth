@@ -21,6 +21,7 @@ return new class extends Migration
             $table->float('price');
             $table->decimal('stock', 10, 2)->default(0);
             $table->text('image_path')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
