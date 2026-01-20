@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('created_by_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('created_by_name');
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();

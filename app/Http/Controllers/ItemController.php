@@ -38,7 +38,6 @@ class ItemController extends Controller
         Item::create([
             'name' => $request->name,
             'created_by_id' => Auth::id(),
-            'created_by_name' => Auth::user()->name,
             'description' => $request->description,
             'price' => $request->price,
             'stock' => $request->stock,

@@ -34,7 +34,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">฿{{ number_format($order->total_price) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $order->created_at->format('M d, Y') }}
+                                        {{ $order->created_at->format('M d, Y H:i') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full

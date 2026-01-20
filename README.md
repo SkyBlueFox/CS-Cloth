@@ -36,6 +36,11 @@ sail artisan key:generate
 sail artisan migrate:fresh --seed
 ```
 
+then
+```aiignore
+sail artisan storage:link
+```
+
 ## Login Credentials (For Testing)
 **Super Admin:**
 - Email: tan@cloth.com
