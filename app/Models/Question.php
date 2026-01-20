@@ -34,6 +34,7 @@ class Question extends Model
 
     public function reports(): HasMany
     {
-        return $this->hasMany(Report::class, 'report_id');
+        return $this->hasMany(Report::class, 'question_id');
     }
+
 }

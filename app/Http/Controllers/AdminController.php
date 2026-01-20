@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -84,7 +85,7 @@ class AdminController extends Controller
 
         Item::create([
             'name' => $validated['name'],
-            'created_by_id' => auth()->id(),
+            'created_by_id' => Auth::id(),
 
             'description' => $validated['description'],
             'price' => $validated['price'],
@@ -93,7 +94,7 @@ class AdminController extends Controller
             'is_active' => true,
         ]);
 
-        return redirect()->route('admin.items.create')->with('success', 'Item posted successfully!');
+        return redirect()->route('admin.items.index')->with('success', 'Item posted successfully!');
     }
 
     public function indexItems()
