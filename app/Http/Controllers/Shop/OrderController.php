@@ -23,7 +23,7 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-    /*public function store(Request $request, Item $item)
+    public function store(Request $request, Item $item)
     {
         $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
@@ -35,7 +35,7 @@ class OrderController extends Controller
         DB::transaction(function () use ($request, $item) {
             $qty = (int) $request->input('quantity');
 
-            // lock item กัน oversell
+
             $lockedItem = Item::query()->whereKey($item->id)->lockForUpdate()->first();
             if ($lockedItem->stock < $qty) {
                 abort(400, 'สต็อกไม่พอ');
@@ -43,10 +43,10 @@ class OrderController extends Controller
 
             $total = $lockedItem->price * $qty;
 
-            // lock user กัน race condition
+
             $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
 
-            // ถ้ามี wallet_balance ให้เช็ค (ถ้าโปรเจกต์ไม่มี field นี้ ให้ลบส่วนนี้ออก)
+
             if (isset($user->wallet_balance) && $user->wallet_balance < $total) {
                 abort(400, 'ยอดเงินในกระเป๋าไม่พอ');
             }
@@ -73,7 +73,7 @@ class OrderController extends Controller
         });
 
         return redirect()->route('orders.index')->with('success', 'สั่งซื้อเรียบร้อย');
-    }*/
+    }
 
     public function cancel(Request $request, Order $order)
     {
@@ -90,10 +90,10 @@ class OrderController extends Controller
             $locked->load('items.item');
 
             // คืนสต็อก
-            /*foreach ($locked->items as $oi) {
+            foreach ($locked->items as $oi) {
                 $it = Item::query()->whereKey($oi->item_id)->lockForUpdate()->first();
                 $it->increment('stock', $oi->quantity);
-            }*/
+            }
 
             // คืนเงิน
             $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();

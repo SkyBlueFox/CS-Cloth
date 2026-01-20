@@ -40,7 +40,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
 Route::post('/questions/{id}/report', [ReportController::class, 'store'])
     ->middleware(['auth', 'verified', 'role:user'])
     ->name('reports.store');
-});
+
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
