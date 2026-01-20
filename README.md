@@ -51,6 +51,6 @@ sail artisan storage:link
 - Password: asd123
 
 **Normal User:**
-- Email: exp@cloth.com
+- Email: user@cloth.com
 - Password: asd123
 
