@@ -29,6 +29,7 @@ return new class extends Migration {
 
             $table->text('question_text');
             $table->text('answer_text')->nullable();
+            $table->integer('score_cached')->default('0');
 
             $table->timestamps();
             $table->softDeletes();

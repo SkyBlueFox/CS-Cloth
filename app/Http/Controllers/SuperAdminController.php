@@ -164,11 +164,21 @@ class SuperAdminController extends Controller
 
     public function resolve(Report $report)
     {
-        $report->update([
-            'status' => Report::STATUS_RESOLVED
-        ]);
+        $report->update(['status' => Report::STATUS_RESOLVED]);
 
-        return back()->with('success', 'Report resolved successfully.');
+
+        $question = $report->question;
+
+        if ($question) {
+            $question->update([
+                'answer_text' => null,
+                'admin_id' => null,
+                'admin_name' => null,
+                'score_cached' => 0,
+            ]);
+        }
+
+        return back()->with('success', 'Report resolved and answer removed successfully.');
     }
 
     public function dismiss(Report $report)
