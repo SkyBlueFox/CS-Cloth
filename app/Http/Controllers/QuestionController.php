@@ -8,18 +8,30 @@ use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
-    // ADMIN: pending questions
+    /**
+     * ADMIN: Pending Questions + History (answered by me)
+     * route: admin.questions.index -> /admin/questions
+     */
     public function index()
     {
-        $questions = Question::with(['item', 'asker'])
+        $pending = Question::with(['item', 'asker'])
             ->whereNull('answer_text')
             ->latest()
-            ->paginate(10);
+            ->paginate(10, ['*'], 'pending');
 
-        return view('admin.questions', compact('questions'));
+        $answeredByMe = Question::with(['item', 'asker'])
+            ->whereNotNull('answer_text')
+            ->where('admin_id', Auth::id())
+            ->latest()
+            ->paginate(10, ['*'], 'answered');
+
+        return view('admin.questions', compact('pending', 'answeredByMe'));
     }
 
-    // ADMIN: answer
+    /**
+     * ADMIN: Answer question
+     * route: admin.questions.answer -> PATCH /admin/questions/{question}/answer
+     */
     public function answer(Request $request, Question $question)
     {
         $validated = $request->validate([
@@ -33,5 +45,24 @@ class QuestionController extends Controller
         ]);
 
         return back()->with('success', 'ตอบคำถามเรียบร้อย');
+    }
+
+    /**
+     * ADMIN: delete answer (optional route มีแล้วใน web.php)
+     */
+    public function deleteAnswer(Question $question)
+    {
+        if ($question->admin_id !== Auth::id()) {
+            return back()->with('error', 'คุณลบคำตอบของคนอื่นไม่ได้');
+        }
+
+        $question->update([
+            'answer_text' => null,
+            'admin_id' => null,
+            'admin_name' => null,
+            'score_cached' => 0,
+        ]);
+
+        return back()->with('success', 'ลบคำตอบเรียบร้อย');
     }
 }

@@ -10,11 +10,57 @@
                     </a>
                 </div>
 
+                @php
+                    $role = auth()->check() ? auth()->user()->role : null;
+                @endphp
+
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if($role === 'user')
+                        <x-nav-link :href="route('shop.index')" :active="request()->routeIs('shop.*')">
+                            {{ __('Shop') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                            {{ __('My Orders') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.*')">
+                            {{ __('My Questions') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if($role === 'admin')
+                        <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                            {{ __('Manage Orders') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('admin.items.index')" :active="request()->routeIs('admin.items.*')">
+                            {{ __('Manage Items') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('admin.questions.index')" :active="request()->routeIs('admin.questions.*')">
+                            {{ __('Pending Questions') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if($role === 'superadmin')
+                        <x-nav-link :href="route('superadmin.create-admin')" :active="request()->routeIs('superadmin.create-admin') || request()->routeIs('superadmin.admins.*')">
+                            {{ __('Manage Admins') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('superadmin.create-user')" :active="request()->routeIs('superadmin.create-user') || request()->routeIs('superadmin.users.*')">
+                            {{ __('Manage Users') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('superadmin.reports')" :active="request()->routeIs('superadmin.reports*')">
+                            {{ __('Manage Reports') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -43,8 +89,7 @@
                             @csrf
 
                             <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
+                                onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
@@ -66,10 +111,56 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        @php
+            $role = auth()->check() ? auth()->user()->role : null;
+        @endphp
+
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if($role === 'user')
+                <x-responsive-nav-link :href="route('shop.index')" :active="request()->routeIs('shop.*')">
+                    {{ __('Shop') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                    {{ __('My Orders') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('questions.index')" :active="request()->routeIs('questions.*')">
+                    {{ __('My Questions') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if($role === 'admin')
+                <x-responsive-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                    {{ __('Manage Orders') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('admin.items.index')" :active="request()->routeIs('admin.items.*')">
+                    {{ __('Manage Items') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('admin.questions.index')" :active="request()->routeIs('admin.questions.*')">
+                    {{ __('Pending Questions') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if($role === 'superadmin')
+                <x-responsive-nav-link :href="route('superadmin.create-admin')" :active="request()->routeIs('superadmin.create-admin') || request()->routeIs('superadmin.admins.*')">
+                    {{ __('Manage Admins') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('superadmin.create-user')" :active="request()->routeIs('superadmin.create-user') || request()->routeIs('superadmin.users.*')">
+                    {{ __('Manage Users') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('superadmin.reports')" :active="request()->routeIs('superadmin.reports*')">
+                    {{ __('Manage Reports') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -84,13 +175,10 @@
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
-                <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
+                        onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
                 </form>
