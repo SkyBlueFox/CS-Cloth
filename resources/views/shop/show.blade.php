@@ -32,7 +32,7 @@
         <div class="p-6 rounded bg-white shadow space-y-3">
             <h2 class="text-lg font-semibold">Buy</h2>
 
-            <form method="POST" action="{{ route('orders.store', $item) }}" class="space-y-3">
+            <form method="POST" action="{{ route('questions.store', ['item' => $item->id]) }}" class="space-y-3">
                 @csrf
 
                 <div>

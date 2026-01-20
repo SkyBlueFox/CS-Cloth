@@ -27,7 +27,7 @@ Route::get('/shop/items/{item}', [ShopController::class, 'show'])->name('shop.it
  */
 Route::post('/shop/items/{item}/questions', [ShopQuestionController::class, 'store'])
     ->middleware(['auth', 'role:user'])
-    ->name('shop.questions.store');
+    ->name('questions.store');
 
 /**
  * USER: My Questions
