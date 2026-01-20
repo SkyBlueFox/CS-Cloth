@@ -28,7 +28,7 @@
 
     {{-- BUY (USER only) --}}
     @auth
-        @if(auth()->user()->role === 'user')
+        @if(auth()->user()->role === \App\Models\User::ROLE_USER)
         <div class="p-6 rounded bg-white shadow space-y-3">
             <h2 class="text-lg font-semibold">Buy</h2>
 
@@ -74,7 +74,7 @@
 
         {{-- Ask question (USER only) --}}
         @auth
-            @if(auth()->user()->role === 'user')
+            @if(auth()->user()->role === \App\Models\User::ROLE_USER)
             <form method="POST" action="{{ route('questions.store', $item) }}" class="space-y-3">
                 @csrf
                 <div>
