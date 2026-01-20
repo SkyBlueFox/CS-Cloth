@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Item extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'name',
         'created_by_id',
@@ -14,6 +16,12 @@ class Item extends Model
         'stock',
         'image_path',
         'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'stock' => 'integer', // <--- ADD THIS. It strips the .00 automatically.
+        'price' => 'float',
     ];
 
     public function questions()

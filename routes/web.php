@@ -77,10 +77,24 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         ->name('admin.orders.approve-refund');
 
     // items
+        // Item Management Dashboard
+    Route::get('/admin/items', [AdminController::class, 'indexItems'])
+        ->name('admin.items.index');
+
     Route::get('/admin/items/create', [AdminController::class, 'createItem'])
         ->name('admin.items.create');
     Route::post('/admin/items', [AdminController::class, 'storeItem'])
         ->name('admin.items.store');
+
+        // Edit & Update
+    Route::get('/admin/items/{item}/edit', [AdminController::class, 'editItem'])
+        ->name('admin.items.edit');
+    Route::patch('/admin/items/{item}', [AdminController::class, 'updateItem'])
+        ->name('admin.items.update');
+
+        // Actions
+    Route::patch('/admin/items/{item}/toggle', [AdminController::class, 'toggleItem'])->name('admin.items.toggle');
+    Route::delete('/admin/items/{item}', [AdminController::class, 'destroyItem'])->name('admin.items.destroy');
 });
 
 Route::post('/questions/{id}/report', [ReportController::class, 'store'])
