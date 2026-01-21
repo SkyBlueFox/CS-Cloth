@@ -143,13 +143,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/admin/items/{item}', [AdminController::class, 'destroyItem'])->name('admin.items.destroy');
 });
 
-/**
- * USER report admin reply
- */
-Route::post('/questions/{id}/report', [ReportController::class, 'store'])
-    ->middleware(['auth', 'role:user'])
-    ->name('reports.store');
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 
