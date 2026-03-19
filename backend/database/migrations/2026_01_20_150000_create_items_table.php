@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->float('price');
-            $table->decimal('stock', 10, 2)->default(0);
+            $table->decimal('price', 10, 2);
+            $table->unsignedInteger('stock')->default(0);
             $table->text('image_path')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

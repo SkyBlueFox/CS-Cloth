@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -53,17 +54,28 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'balance' => 'decimal:2',
         ];
     }
 
-    public function questionsAsked()
-{
-    return $this->hasMany(\App\Models\Question::class, 'asker_id');
-}
+    public function questionsAsked(): HasMany
+    {
+        return $this->hasMany(\App\Models\Question::class, 'asker_id');
+    }
 
-public function questionsAnswered()
-{
-    return $this->hasMany(\App\Models\Question::class, 'admin_id');
-}
+    public function questionsAnswered(): HasMany
+    {
+        return $this->hasMany(\App\Models\Question::class, 'admin_id');
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(UserAddress::class)->orderByDesc('is_default')->orderBy('label');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
 
 }

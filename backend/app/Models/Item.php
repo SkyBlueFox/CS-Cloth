@@ -20,8 +20,8 @@ class Item extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'stock' => 'integer', // <--- ADD THIS. It strips the .00 automatically.
-        'price' => 'float',
+        'stock' => 'integer',
+        'price' => 'decimal:2',
     ];
 
     public function questions()

@@ -15,8 +15,7 @@ return new class extends Migration {
             // pending | shipped | refunding | refunded | cancelled
             $table->string('status', 20)->default('pending');
 
-            // เก็บเป็นจำนวนเต็ม (บาท)
-            $table->integer('total_price');
+            $table->decimal('total_price', 10, 2);
 
             $table->text('shipping_address')->nullable();
 
