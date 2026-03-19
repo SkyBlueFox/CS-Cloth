@@ -22,6 +22,13 @@
 	];
 
 	const visibleNav = nav.filter((item) => !data.user || item.roles.includes(data.user.role));
+	const homeHref = $derived(
+		data.user?.role === 'superadmin'
+			? '/superadmin/reports'
+			: data.user?.role === 'admin'
+				? '/admin/items'
+				: '/shop'
+	);
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -69,13 +76,13 @@
 						{/if}
 						<div>
 							<p class="eyebrow">CS Cloth</p>
-							<h1 class="text-lg font-semibold text-sky-950">
+							<a class="block text-lg font-semibold text-sky-950 hover:text-blue-800" href={homeHref}>
 								{#if data.user}
 									Workspace
 								{:else}
 									Storefront
 								{/if}
-							</h1>
+							</a>
 						</div>
 					</div>
 
