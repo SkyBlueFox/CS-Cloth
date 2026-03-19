@@ -22,6 +22,7 @@ class ApiData
             'role' => strtolower($user->role),
             'balance' => (float) $user->balance,
             'created_at' => $user->created_at?->toIso8601String(),
+            'deleted_at' => $user->deleted_at?->toIso8601String(),
         ];
     }
 

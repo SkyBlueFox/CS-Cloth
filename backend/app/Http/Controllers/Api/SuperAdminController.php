@@ -15,13 +15,18 @@ class SuperAdminController extends Controller
 {
     public function admins()
     {
-        $admins = User::query()
-            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPERADMIN])
+        $activeAdmins = User::query()
+            ->where('role', User::ROLE_ADMIN)
             ->latest()
+            ->get();
+        $deactivatedAdmins = User::onlyTrashed()
+            ->where('role', User::ROLE_ADMIN)
+            ->latest('deleted_at')
             ->get();
 
         return response()->json([
-            'data' => $admins->map(fn (User $user) => ApiData::user($user))->values()->all(),
+            'active' => $activeAdmins->map(fn (User $user) => ApiData::user($user))->values()->all(),
+            'deactivated' => $deactivatedAdmins->map(fn (User $user) => ApiData::user($user))->values()->all(),
         ]);
     }
 
@@ -45,7 +50,7 @@ class SuperAdminController extends Controller
 
     public function updateAdmin(Request $request, User $user)
     {
-        abort_unless(in_array($user->role, [User::ROLE_ADMIN, User::ROLE_SUPERADMIN], true), 403);
+        abort_unless($user->role === User::ROLE_ADMIN, 403);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -69,6 +74,8 @@ class SuperAdminController extends Controller
 
     public function destroyAdmin(Request $request, User $user)
     {
+        abort_unless($user->role === User::ROLE_ADMIN, 403);
+
         if ($user->id === $request->user()->id) {
             return response()->json(['message' => 'You cannot delete yourself.'], 422);
         }
@@ -78,15 +85,30 @@ class SuperAdminController extends Controller
         return response()->json(['message' => 'Admin deleted.']);
     }
 
+    public function restoreAdmin(int $userId)
+    {
+        $user = User::onlyTrashed()->findOrFail($userId);
+        abort_unless($user->role === User::ROLE_ADMIN, 403);
+
+        $user->restore();
+
+        return response()->json(['user' => ApiData::user($user->fresh())]);
+    }
+
     public function users()
     {
-        $users = User::query()
+        $activeUsers = User::query()
             ->where('role', User::ROLE_USER)
             ->latest()
             ->get();
+        $deactivatedUsers = User::onlyTrashed()
+            ->where('role', User::ROLE_USER)
+            ->latest('deleted_at')
+            ->get();
 
         return response()->json([
-            'data' => $users->map(fn (User $user) => ApiData::user($user))->values()->all(),
+            'active' => $activeUsers->map(fn (User $user) => ApiData::user($user))->values()->all(),
+            'deactivated' => $deactivatedUsers->map(fn (User $user) => ApiData::user($user))->values()->all(),
         ]);
     }
 
@@ -141,6 +163,16 @@ class SuperAdminController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'User deleted.']);
+    }
+
+    public function restoreUser(int $userId)
+    {
+        $user = User::onlyTrashed()->findOrFail($userId);
+        abort_unless($user->role === User::ROLE_USER, 403);
+
+        $user->restore();
+
+        return response()->json(['user' => ApiData::user($user->fresh())]);
     }
 
     public function reports()

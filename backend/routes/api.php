@@ -63,11 +63,13 @@ Route::middleware(['api.auth', 'role:superadmin'])->prefix('superadmin')->group(
     Route::post('/admins', [SuperAdminController::class, 'storeAdmin']);
     Route::patch('/admins/{user}', [SuperAdminController::class, 'updateAdmin']);
     Route::delete('/admins/{user}', [SuperAdminController::class, 'destroyAdmin']);
+    Route::patch('/admins/{userId}/restore', [SuperAdminController::class, 'restoreAdmin']);
 
     Route::get('/users', [SuperAdminController::class, 'users']);
     Route::post('/users', [SuperAdminController::class, 'storeUser']);
     Route::patch('/users/{user}', [SuperAdminController::class, 'updateUser']);
     Route::delete('/users/{user}', [SuperAdminController::class, 'destroyUser']);
+    Route::patch('/users/{userId}/restore', [SuperAdminController::class, 'restoreUser']);
 
     Route::get('/reports', [SuperAdminController::class, 'reports']);
     Route::patch('/reports/{report}/resolve', [SuperAdminController::class, 'resolve']);

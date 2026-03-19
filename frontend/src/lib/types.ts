@@ -8,6 +8,7 @@ export interface User {
 	role: Role;
 	balance: number;
 	created_at: string | null;
+	deleted_at: string | null;
 }
 
 export interface Address {

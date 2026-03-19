@@ -5,7 +5,7 @@ import type { User } from '$lib/types';
 
 export const load = async (event) => {
 	requireUser(event, ['superadmin']);
-	const admins = await backend<{ data: User[] }>(event, '/superadmin/admins');
+	const admins = await backend<{ active: User[]; deactivated: User[] }>(event, '/superadmin/admins');
 	return admins;
 };
 
@@ -56,9 +56,21 @@ export const actions = {
 		try {
 			await backend(event, `/superadmin/admins/${form.get('user_id')}`, { method: 'DELETE' });
 		} catch (error) {
-			return fail(422, { error: getErrorMessage(error, 'Unable to delete admin.') });
+			return fail(422, { error: getErrorMessage(error, 'Unable to deactivate admin.') });
 		}
 
-		return { success: 'Admin deleted.' };
+		return { success: 'Admin deactivated.' };
+	},
+	restore: async (event) => {
+		requireUser(event, ['superadmin']);
+		const form = await event.request.formData();
+
+		try {
+			await backend(event, `/superadmin/admins/${form.get('user_id')}/restore`, { method: 'PATCH' });
+		} catch (error) {
+			return fail(422, { error: getErrorMessage(error, 'Unable to reactivate admin.') });
+		}
+
+		return { success: 'Admin reactivated.' };
 	}
 };
