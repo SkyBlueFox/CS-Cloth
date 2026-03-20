@@ -9,107 +9,140 @@ use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\ProcessOrderJob;
 
 class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Order::query()
-            ->where('buyer_id', $request->user()->id)
-            ->with(['items.item'])
+        $orders = Order::where('buyer_id', $request->user()->id)
+            ->with('items.item')
             ->latest()
-            ->paginate(10);
+            ->get();
 
-        return view('orders.index', compact('orders'));
+        return response()->json([
+            'data' => $orders
+        ]);
     }
 
-    public function store(Request $request, Item $item)
+    public function store(Request $request)
     {
-        $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:' . $item->stock],
-            'shipping_address' => ['required', 'string', 'max:2000'],
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.item_id' => 'required|exists:items,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'shipping_address' => 'required|string|max:2000',
         ]);
 
-        if (!$item->is_active) {
-            return back()->with('error', 'สินค้านี้ไม่พร้อมจำหน่าย (Item is not active)');
-        }
-
-        // Use a try-catch to handle errors inside the transaction gracefully
         try {
-            DB::transaction(function () use ($request, $item) {
-                $qty = (int) $request->input('quantity');
+            $order = DB::transaction(function () use ($request, $validated) {
 
-                $lockedItem = Item::query()->whereKey($item->id)->lockForUpdate()->first();
-                if ($lockedItem->stock < $qty) {
-                    // Throwing an exception inside the transaction triggers an automatic ROLLBACK
-                    throw new \Exception('สต็อกไม่พอ (Out of stock)');
+                $user = User::whereKey($request->user()->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $total = 0;
+                $orderItems = [];
+
+                foreach ($validated['items'] as $i) {
+                    $item = Item::whereKey($i['item_id'])
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$item->is_active) {
+                        throw new \Exception("Item {$item->name} not available");
+                    }
+
+                    if ($item->stock < $i['quantity']) {
+                        throw new \Exception("Stock not enough for {$item->name}");
+                    }
+
+                    $subtotal = $item->price * $i['quantity'];
+                    $total += $subtotal;
+
+                    $orderItems[] = [
+                        'item' => $item,
+                        'quantity' => $i['quantity'],
+                        'price' => $item->price
+                    ];
                 }
 
-                $total = $lockedItem->price * $qty;
-                $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
-
-                if ($user->balance < $total) {
-                    throw new \Exception('ยอดเงินไม่พอ (Insufficient balance)');
+                if ($user->wallet_balance < $total) {
+                    throw new \Exception("Insufficient balance");
                 }
 
                 $order = Order::create([
                     'buyer_id' => $user->id,
                     'status' => 'pending',
                     'total_price' => $total,
-                    'shipping_address' => $request->input('shipping_address'),
+                    'shipping_address' => $validated['shipping_address'],
                 ]);
 
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'item_id' => $lockedItem->id,
-                    'quantity' => $qty,
-                    'price_at_purchase' => $lockedItem->price,
-                ]);
+                foreach ($orderItems as $oi) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'item_id' => $oi['item']->id,
+                        'quantity' => $oi['quantity'],
+                        'price_at_purchase' => $oi['price'],
+                    ]);
 
-                $lockedItem->decrement('stock', $qty);
-                $user->decrement('balance', $total);
+                    $oi['item']->decrement('stock', $oi['quantity']);
+                }
+
+                $user->decrement('wallet_balance', $total);
+
+                // เพิ่ม Queue ตรงนี้
+                ProcessOrderJob::dispatch($order);
+
+                return $order->load('items.item');
             });
-        } catch (\Exception $e) {
-            // Redirect back with the specific error message from the Exception
-            return back()->withInput()->with('error', $e->getMessage());
-        }
 
-        return redirect()->route('orders.index')->with('success', 'สั่งซื้อเรียบร้อย');
+            return response()->json([
+                'message' => 'Order placed',
+                'data' => $order
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
     public function cancel(Request $request, Order $order)
     {
-        // Ensure only the buyer can cancel their own order
         abort_unless($order->buyer_id === $request->user()->id, 403);
 
         DB::transaction(function () use ($order) {
-            // Lock the order to prevent double-canceling
-            $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->first();
 
-            // Only pending orders can be cancelled and refunded
-            if ($lockedOrder->status !== 'pending') {
-                abort(400, 'สามารถยกเลิกได้เฉพาะออเดอร์ที่ยังรอดำเนินการเท่านั้น');
+            // lock order
+            $order = Order::whereKey($order->id)->lockForUpdate()->first();
+
+            if ($order->status !== 'pending') {
+                abort(400, 'Only pending orders can be cancelled');
             }
 
-            $lockedOrder->status = 'cancelled';
-            $lockedOrder->cancelled_at = now();
-            $lockedOrder->save();
+            $order->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now()
+            ]);
 
-            // Load items to return stock
-            $lockedOrder->load('items');
+            // คืน stock
+            $order->load('items');
 
-            foreach ($lockedOrder->items as $oi) {
-                $it = Item::query()->whereKey($oi->item_id)->lockForUpdate()->first();
-                $it->increment('stock', $oi->quantity);
+            foreach ($order->items as $oi) {
+                $item = Item::whereKey($oi->item_id)->lockForUpdate()->first();
+                $item->increment('stock', $oi->quantity);
             }
 
-            // --- INSTANT REFUND ---
-            // Find the buyer and lock their row
-            $buyer = User::query()->whereKey($lockedOrder->buyer_id)->lockForUpdate()->first();
-            $buyer->increment('balance', $lockedOrder->total_price);
+            // คืนเงิน
+            $user = User::whereKey($order->buyer_id)->lockForUpdate()->first();
+            $user->increment('wallet_balance', $order->total_price);
         });
 
-        return back()->with('success', 'ยกเลิกออเดอร์และคืนเงินเรียบร้อยแล้ว');
+        return response()->json([
+            'message' => 'Order cancelled and refunded'
+        ]);
     }
 
     public function requestRefund(Request $request, Order $order)
@@ -117,14 +150,21 @@ class OrderController extends Controller
         abort_unless($order->buyer_id === $request->user()->id, 403);
 
         DB::transaction(function () use ($order) {
-            $locked = Order::query()->whereKey($order->id)->lockForUpdate()->first();
-            abort_unless($locked->status === 'shipped', 400);
 
-            $locked->status = 'refunding';
-            $locked->refund_requested_at = now();
-            $locked->save();
+            $order = Order::whereKey($order->id)->lockForUpdate()->first();
+
+            if ($order->status !== 'shipped') {
+                abort(400, 'Only shipped orders can be refunded');
+            }
+
+            $order->update([
+                'status' => 'refunding',
+                'refund_requested_at' => now()
+            ]);
         });
 
-        return back()->with('success', 'ส่งคำขอคืนเงินแล้ว (รอแอดมินอนุมัติ)');
+        return response()->json([
+            'message' => 'Refund requested'
+        ]);
     }
 }

@@ -28,5 +28,8 @@ class Item extends Model
     {
         return $this->hasMany(\App\Models\Question::class, 'item_id');
     }
-
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

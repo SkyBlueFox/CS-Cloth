@@ -31,9 +31,12 @@ class AuthController extends Controller
         [$plainTextToken, $token] = $this->createToken($user, 'register');
 
         return response()->json([
-            'user' => ApiData::user($user),
-            'token' => $plainTextToken,
-            'token_id' => $token->id,
+            'data' => [
+                'user' => ApiData::user($user),
+                'token' => $plainTextToken,
+                'token_id' => $token->id,
+                'role' => $user->role
+            ]
         ], 201);
     }
 
@@ -44,28 +47,43 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::query()->where('email', strtolower($validated['email']))->first();
+        $user = User::query()
+            ->where('email', strtolower($validated['email']))
+            ->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid credentials.'], 422);
+            return response()->json([
+                'message' => 'Invalid credentials.'
+            ], 422);
         }
 
         [$plainTextToken, $token] = $this->createToken($user, 'login');
 
         return response()->json([
-            'user' => ApiData::user($user),
-            'token' => $plainTextToken,
-            'token_id' => $token->id,
+            'data' => [
+                'user' => ApiData::user($user),
+                'token' => $plainTextToken,
+                'token_id' => $token->id,
+                'role' => $user->role
+            ]
         ]);
     }
 
     public function me(Request $request)
     {
-        $request->user()->load('addresses');
+        $user = $request->user()->load('addresses');
 
         return response()->json([
-            'user' => ApiData::user($request->user()),
-            'addresses' => $request->user()->addresses->map(fn ($address) => ApiData::address($address))->values()->all(),
+            'data' => [
+                'user' => array_merge(
+                    ApiData::user($user),
+                    ['wallet_balance' => $user->wallet_balance]
+                ),
+                'addresses' => $user->addresses
+                    ->map(fn ($address) => ApiData::address($address))
+                    ->values()
+                    ->all()
+            ]
         ]);
     }
 
@@ -73,15 +91,18 @@ class AuthController extends Controller
     {
         $request->attributes->get('apiToken')?->delete();
 
-        return response()->json(['message' => 'Logged out.']);
+        return response()->json([
+            'message' => 'Logged out.'
+        ]);
     }
 
     public function updateProfile(Request $request)
     {
         $user = $request->user();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
@@ -100,8 +121,13 @@ class AuthController extends Controller
         $user->load('addresses');
 
         return response()->json([
-            'user' => ApiData::user($user->fresh()),
-            'addresses' => $user->addresses->map(fn ($address) => ApiData::address($address))->values()->all(),
+            'data' => [
+                'user' => ApiData::user($user->fresh()),
+                'addresses' => $user->addresses
+                    ->map(fn ($address) => ApiData::address($address))
+                    ->values()
+                    ->all()
+            ]
         ]);
     }
 
