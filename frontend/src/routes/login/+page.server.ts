@@ -5,7 +5,7 @@ import { setAuthToken } from '$lib/server/session';
 
 export const load = async ({ locals }) => {
 	if (locals.user) {
-		redirect(303, landingFor(locals.user));
+		throw redirect(303, landingFor(locals.user));
 	}
 };
 
@@ -23,13 +23,13 @@ export const actions = {
 			});
 
 			setAuthToken(event.cookies, response.token);
+
+			throw redirect(303, '/');
 		} catch (error) {
 			return fail(422, {
 				error: getErrorMessage(error, 'Unable to login.'),
 				email: String(form.get('email') ?? '')
 			});
 		}
-
-		redirect(303, '/');
 	}
 };

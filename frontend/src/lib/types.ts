@@ -107,3 +107,7 @@ export interface Order {
 	refunded_at: string | null;
 	created_at: string | null;
 }
+
+export interface CartItem extends Item {
+	quantity: number;
+}

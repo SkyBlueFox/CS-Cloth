@@ -43,7 +43,10 @@ export async function backend<T>(
 		headers.set('authorization', `Bearer ${event.locals.authToken}`);
 	}
 
-	const response = await event.fetch(`${backendBase}/api${path}`, {
+	// ต่อ /api prefix ให้ตรงกับ Laravel routes
+	const url = `${backendBase}/api${path}`;
+
+	const response = await event.fetch(url, {
 		method: options.method ?? (body ? 'POST' : 'GET'),
 		headers,
 		body

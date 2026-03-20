@@ -9,9 +9,10 @@ export const POST: RequestHandler = async ({ cookies, fetch, locals }) => {
 			await backend({ fetch, locals }, '/auth/logout', { method: 'POST' });
 		}
 	} catch {
-		// Ignore logout backend failures and clear the local session token regardless.
+		// ignore
 	}
 
 	clearAuthToken(cookies);
-	redirect(303, '/login');
+
+	throw redirect(303, '/login');
 };

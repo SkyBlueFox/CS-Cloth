@@ -22,10 +22,15 @@
 </script>
 
 <section class="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+	<!-- Item details and questions -->
 	<div class="space-y-8">
 		<div class="panel">
 			{#if data.item.image_url}
-				<img class="mb-6 h-[26rem] w-full rounded-[1.8rem] object-cover" src={data.item.image_url} alt={data.item.name} />
+				<img
+					class="mb-6 h-[26rem] w-full rounded-[1.8rem] object-cover"
+					src={data.item.image_url}
+					alt={data.item.name}
+				/>
 			{/if}
 			<p class="eyebrow">Item</p>
 			<h1 class="mt-3 text-4xl font-semibold">{data.item.name}</h1>
@@ -45,8 +50,8 @@
 				<p class="text-slate-500">No questions yet.</p>
 			{:else}
 				<div class="space-y-4">
-					{#each data.questions as question}
-						<article class="rounded-[1.5rem] border border-slate-200 p-4">
+					{#each data.questions as question (question.id)}
+						<article class="rounded-3xl border border-slate-200 p-4">
 							<p class="text-sm font-medium text-slate-700">{question.asker_name} asked</p>
 							<p class="mt-2">{question.question_text}</p>
 							{#if question.answer_text}
@@ -83,6 +88,7 @@
 		</div>
 	</div>
 
+	<!-- Sidebar forms: order & question -->
 	<div class="space-y-6">
 		{#if form?.error}
 			<p class="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{form.error}</p>
@@ -105,7 +111,7 @@
 					<span class="mb-1 block text-sm font-medium">Saved address</span>
 					<select bind:value={selectedAddressId} class="w-full rounded-2xl border-slate-300" name="address_id">
 						<option value="">Enter a new address</option>
-						{#each data.addresses as address}
+						{#each data.addresses as address (address.id)}
 							<option value={address.id.toString()}>{address.label} · {address.formatted}</option>
 						{/each}
 					</select>

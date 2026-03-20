@@ -11,11 +11,14 @@ html {
 
 body {
 	min-height: 100vh;
+	font-family: var(--font-sans);
 	background:
 		radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 35%),
 		radial-gradient(circle at top right, rgba(14, 165, 233, 0.06), transparent 32%),
 		linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%);
 }
+
+/* ================== UI COMPONENTS ================== */
 
 .panel {
 	@apply rounded-[2rem] border border-sky-100/80 bg-white/92 p-6 shadow-[0_24px_56px_-36px_rgba(15,23,42,0.22)] backdrop-blur;
@@ -28,6 +31,8 @@ body {
 .hero-panel {
 	@apply rounded-[2rem] border border-blue-900/10 bg-blue-800 text-white shadow-[0_28px_60px_-40px_rgba(30,64,175,0.45)];
 }
+
+/* ================== BUTTONS ================== */
 
 .btn-primary {
 	@apply rounded-2xl border border-blue-900/10 bg-blue-700 px-5 py-3 font-medium text-white shadow-[0_14px_28px_-20px_rgba(29,78,216,0.55)] transition hover:bg-blue-800;
@@ -45,12 +50,16 @@ body {
 	@apply rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 font-medium text-amber-700 transition hover:bg-amber-100;
 }
 
+/* ================== BOX ================== */
+
 .subtle-box {
 	@apply rounded-[1.5rem] border border-sky-100 bg-sky-50/85;
 }
 
+/* ================== SIDEBAR ================== */
+
 .sidebar-shell {
-	@apply sticky top-0 hidden h-screen shrink-0 overflow-hidden border-r border-sky-100/80 bg-white/95 backdrop-blur transition-[width,opacity,border-color] duration-300 ease-out lg:block;
+	@apply sticky top-0 hidden h-screen shrink-0 overflow-hidden border-r border-sky-100/80 bg-white/95 backdrop-blur transition-all duration-300 ease-out lg:block;
 }
 
 .sidebar-link {
@@ -58,7 +67,7 @@ body {
 }
 
 .sidebar-link-active {
-	@apply border border-blue-900/10 bg-blue-700 text-white shadow-[0_16px_28px_-22px_rgba(29,78,216,0.5)] hover:bg-blue-700;
+	@apply border border-blue-900/10 bg-blue-700 text-white shadow-[0_16px_28px_-22px_rgba(29,78,216,0.5)];
 }
 
 .sidebar-icon {
@@ -68,6 +77,8 @@ body {
 .sidebar-icon-active {
 	@apply bg-white/15 text-white;
 }
+
+/* ================== FORM ================== */
 
 @layer base {
 	input,

@@ -1,7 +1,20 @@
 <script lang="ts">
 	import Pagination from '$lib/components/Pagination.svelte';
+	import type { Order, PaginationMeta } from '$lib/types';
 
-	let { data, form } = $props();
+	interface OrdersData {
+		orders: {
+			data: Order[];
+			meta: PaginationMeta;
+		};
+	}
+
+	interface FormData {
+		error?: string;
+		success?: string;
+	}
+
+	let { data, form } = $props<{ data: OrdersData; form?: FormData }>();
 </script>
 
 <section class="space-y-6">
@@ -18,7 +31,7 @@
 	{/if}
 
 	<div class="space-y-5">
-		{#each data.orders.data as order}
+		{#each data.orders.data as order (order.id)}
 			<article class="panel space-y-4">
 				<div class="flex flex-wrap items-center justify-between gap-4">
 					<div>
@@ -42,7 +55,7 @@
 				</div>
 				<p class="text-sm text-slate-600">{order.shipping_address_formatted ?? order.shipping_address}</p>
 				<div class="grid gap-3">
-					{#each order.items as line}
+					{#each order.items as line (line.id)}
 						<div class="rounded-[1.25rem] border border-slate-200 p-4">
 							<p class="font-medium">{line.item?.name ?? `Item #${line.item_id}`}</p>
 							<p class="text-sm text-slate-500">{line.quantity} × ฿{line.price_at_purchase.toFixed(2)}</p>

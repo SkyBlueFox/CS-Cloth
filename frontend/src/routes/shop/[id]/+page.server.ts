@@ -3,7 +3,10 @@ import { backend, getErrorMessage } from '$lib/server/backend';
 import type { Address, Item, Question } from '$lib/types';
 
 export const load = async (event) => {
-	const response = await backend<{ item: Item; questions: Question[] }>(event, `/shop/items/${event.params.id}`);
+	const response = await backend<{ item: Item; questions: Question[] }>(
+		event,
+		`/shop/items/${event.params.id}`
+	);
 
 	const addresses =
 		event.locals.user?.role === 'user'
