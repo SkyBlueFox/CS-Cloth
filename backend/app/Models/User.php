@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Model
@@ -38,5 +39,10 @@ class User extends Model
     public function questions()
     {
         return $this->hasMany(Question::class, 'asker_id');
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(UserAddress::class, 'user_id');
     }
 }
