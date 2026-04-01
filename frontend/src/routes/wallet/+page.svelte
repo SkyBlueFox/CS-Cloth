@@ -97,15 +97,10 @@
 		cvv = String(form?.values?.cvv ?? '');
 	});
 
-	$effect(() => {
-		user.update((current) => (current && current.role === 'user' ? { ...current, balance: data.balance } : current));
-	});
+    $effect(() => {
+        user.update((current) => (current && current.role === 'user' ? { ...current, balance: data.wallet.balance } : current));
+    });
 
-	$effect(() => {
-		if (form?.updatedUser) {
-			user.update((current) => (current && current.role === 'user' ? { ...current, ...form.updatedUser } : form.updatedUser));
-		}
-	});
 </script>
 
 <section class="mx-auto max-w-7xl space-y-8">

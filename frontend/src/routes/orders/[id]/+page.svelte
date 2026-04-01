@@ -2,6 +2,13 @@
     import { itemImageSrc } from '$lib/media';
     import { fly } from 'svelte/transition';
 
+    interface TimelineEvent {
+        key: string;
+        title: string;
+        detail: string;
+        timestamp: string | null;
+    }
+
     let { data, form } = $props();
     let selectedRefundReasons = $state<Record<number, string>>({});
 
@@ -23,70 +30,49 @@
         }).format(new Date(value));
     }
 
-    const timelineEvents = $derived([
-        ...(order.status_history ?? [])
-            .filter((event) =>
-                ['placed', 'shipped', 'cancelled'].includes(event.key)
-            )
-    const refundReasonLabels: Record<string, string> = {
-        damaged_item: 'Item arrived damaged',
-        wrong_item: 'Wrong item received',
-        missing_parts: 'Missing parts or accessories',
-        not_as_described: 'Item not as described',
-        quality_issue: 'Quality issue',
-        changed_mind: 'No longer needed',
-        other: 'Other'
-    };
-
-    function refundReasonText(reasonCode: string | null, reasonDetail: string | null) {
-        if (!reasonCode) return null;
-        if (reasonCode === 'other') return reasonDetail || 'Other';
-        return refundReasonLabels[reasonCode] ?? reasonCode.replaceAll('_', ' ');
-    }
-
-    function lineItemName(line: (typeof data.order.items)[number]) {
-        return line.item?.name ?? `Item #${line.item_id}`;
-    }
-
     function selectedReasonFor(lineId: number) {
         return selectedRefundReasons[lineId] ?? refundReasons[0]?.value ?? '';
     }
 
-    const timelineEvents: TimelineEvent[] = [
-        ...data.order.status_history
-            .filter((event) => ['placed', 'shipped', 'cancelled'].includes(event.key))
-            .map((event) => ({
-                key: `status-${event.key}-${event.timestamp}`,
-                title:
-                    event.key === 'placed'
-                        ? 'Order placed'
-                        : event.key === 'shipped'
-                        ? 'Order shipped'
-                        : 'Order cancelled',
-                detail:
-                    event.key === 'placed'
-                        ? `Order ${order.order_number} was placed successfully.`
-                        : event.key === 'shipped'
-                        ? `Your order was handed to courier.`
-                        : 'Order cancelled and refunded.',
-                timestamp: event.timestamp
-            })),
+    let timelineEvents: TimelineEvent[] = [];
 
-        ...(order.items ?? []).flatMap((line) =>
-            (line.refund_events ?? []).map((event) => ({
-                key: `refund-${event.id}`,
-                title: 'Refund Update',
-                detail: `${event.quantity}x ${
-                    line.item?.name ?? 'Item'
-                } refund status: ${event.event_type}`,
-                timestamp: event.happened_at
-            }))
-        )
-    ].sort(
-        (a, b) =>
-            new Date(b.timestamp ?? 0).getTime() -
-            new Date(a.timestamp ?? 0).getTime()
-    ));
+    $effect(() => {
+        timelineEvents = [
+            ...data.order.status_history
+                .filter((event) => ['placed', 'shipped', 'cancelled'].includes(event.key))
+                .map((event) => ({
+                    key: `status-${event.key}-${event.timestamp}`,
+                    title:
+                        event.key === 'placed'
+                            ? 'Order placed'
+                            : event.key === 'shipped'
+                            ? 'Order shipped'
+                            : 'Order cancelled',
+                    detail:
+                        event.key === 'placed'
+                            ? `Order ${data.order.order_number} was placed successfully.`
+                            : event.key === 'shipped'
+                            ? `Your order was handed to courier.`
+                            : 'Order cancelled and refunded.',
+                    timestamp: event.timestamp
+                })),
+
+            ...(data.order.items ?? []).flatMap((line: typeof data.order.items[number]) =>
+                (line.refund_events ?? []).map((event: typeof line.refund_events[number]) => ({
+                    key: `refund-${event.id}`,
+                    title: 'Refund Update',
+                    detail: `${event.quantity}x ${
+                        line.item?.name ?? 'Item'
+                    } refund status: ${event.event_type}`,
+                    timestamp: event.happened_at
+                }))
+            )
+        ].sort(
+            (a, b) =>
+                new Date(b.timestamp ?? 0).getTime() -
+                new Date(a.timestamp ?? 0).getTime()
+        );
+    });
 </script>
 
 <section class="mx-auto max-w-7xl space-y-10">
@@ -100,15 +86,15 @@
             </div>
 
             <h1 class="text-4xl font-black tracking-tight uppercase">
-                Order #{order.order_number}
+                Order #{data.order.order_number}
             </h1>
 
             <div class="flex items-center gap-4">
                 <span class="rounded-full bg-white px-4 py-1.5 text-[10px] font-black uppercase text-slate-900">
-                    Status: {order.status?.replace('_', ' ')}
+                    Status: {data.order.status?.replace('_', ' ')}
                 </span>
                 <span class="text-lg font-black">
-                    ฿{order.total_price?.toLocaleString()}
+                    ฿{data.order.total_price?.toLocaleString()}
                 </span>
             </div>
         </div>
@@ -121,7 +107,7 @@
                 Back
             </a>
 
-            {#if order.status === 'pending'}
+            {#if data.order.status === 'pending'}
                 <form method="POST" action="?/cancel">
                     <button
                         class="rounded-2xl bg-rose-600 px-8 py-4 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-rose-600/20 transition-all hover:bg-rose-700"
@@ -134,7 +120,7 @@
     </div>
 
     {#if form?.error || form?.success}
-        <div in:fly={{ y: -10 }} class="rounded-[2rem] shadow-lg overflow-hidden">
+        <div in:fly={{ y: -10 }} class="rounded-4xl shadow-lg overflow-hidden">
             {#if form?.error}
                 <p class="bg-rose-50 px-8 py-5 text-sm font-black text-rose-800">
                     {form.error}
@@ -156,10 +142,10 @@
                 </h2>
 
                 <div class="grid gap-6">
-                    {#each order.items ?? [] as line (line.id)}
+                    {#each data.order.items ?? [] as line (line.id)}
                         <div class="group relative rounded-[2.5rem] bg-slate-50/50 p-8 ring-1 ring-slate-100 transition-all hover:bg-white">
                             <div class="flex flex-col gap-8 md:flex-row">
-                                <div class="h-32 w-32 shrink-0 overflow-hidden rounded-[1.5rem] bg-white ring-1 ring-slate-200">
+                                <div class="h-32 w-32 shrink-0 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
                                     {#if line.item}
                                         <img
                                             alt=""
@@ -190,7 +176,7 @@
                                 </div>
                             </div>
 
-                            {#if (order.status === 'shipped' || order.status === 'completed') && line.refundable_quantity > 0}
+                            {#if (data.order.status === 'shipped' || data.order.status === 'completed') && line.refundable_quantity > 0}
                                 <details class="mt-8 border-t border-slate-100 pt-8">
                                     <summary class="cursor-pointer text-[10px] font-black uppercase text-amber-600">
                                         Initiate Item Refund
