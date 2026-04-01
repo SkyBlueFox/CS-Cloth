@@ -1,19 +1,20 @@
 <script lang="ts">
-    import applePayLogo from '$lib/assets/payment-gateway/ApplePay.png';
-    import americanExpressLogo from '$lib/assets/payment-gateway/AmericanExpress.png';
-    import googlePayLogo from '$lib/assets/payment-gateway/GooglePay.png';
-    import jcbLogo from '$lib/assets/payment-gateway/JCB.png';
-    import linePayLogo from '$lib/assets/payment-gateway/LinePay.png';
-    import mastercardLogo from '$lib/assets/payment-gateway/Mastercard.png';
-    import shopeePayLogo from '$lib/assets/payment-gateway/ShopeePay.png';
-    import trueMoneyLogo from '$lib/assets/payment-gateway/TrueMoney.png';
-    import unionPayLogo from '$lib/assets/payment-gateway/UnionPay.png';
-    import visaLogo from '$lib/assets/payment-gateway/Visa.png';
-    import bangkokBankLogo from '$lib/assets/payment-gateway/mobile-banking/BangkokBank.png';
-    import kPlusLogo from '$lib/assets/payment-gateway/mobile-banking/KPLUS.png';
-    import krungsriLogo from '$lib/assets/payment-gateway/mobile-banking/Krungsri.png';
-    import krungthaiNextLogo from '$lib/assets/payment-gateway/mobile-banking/KrungthaiNEXT.png';
-    import scbEasyLogo from '$lib/assets/payment-gateway/mobile-banking/SCBEASY.png';
+	import applePayLogo from '$lib/assets/payment-gateway/ApplePay.png';
+	import americanExpressLogo from '$lib/assets/payment-gateway/AmericanExpress.png';
+	import googlePayLogo from '$lib/assets/payment-gateway/GooglePay.png';
+	import jcbLogo from '$lib/assets/payment-gateway/JCB.png';
+	import linePayLogo from '$lib/assets/payment-gateway/LinePay.png';
+	import mastercardLogo from '$lib/assets/payment-gateway/Mastercard.png';
+	import shopeePayLogo from '$lib/assets/payment-gateway/ShopeePay.png';
+	import trueMoneyLogo from '$lib/assets/payment-gateway/TrueMoney.png';
+	import unionPayLogo from '$lib/assets/payment-gateway/UnionPay.png';
+	import visaLogo from '$lib/assets/payment-gateway/Visa.png';
+	import bangkokBankLogo from '$lib/assets/payment-gateway/mobile-banking/BangkokBank.png';
+	import kPlusLogo from '$lib/assets/payment-gateway/mobile-banking/KPLUS.png';
+	import krungsriLogo from '$lib/assets/payment-gateway/mobile-banking/Krungsri.png';
+	import krungthaiNextLogo from '$lib/assets/payment-gateway/mobile-banking/KrungthaiNEXT.png';
+	import scbEasyLogo from '$lib/assets/payment-gateway/mobile-banking/SCBEASY.png';
+	import { user } from '$lib/stores/auth';
 
     let { data, form } = $props();
 
@@ -86,17 +87,25 @@
         cvv = input.value.replace(/\D+/g, '').slice(0, 3);
     }
 
-    $effect(() => {
-        if (form?.values) {
-            selectedPresetAmount = String(form.values.preset_amount ?? selectedPresetAmount);
-            customAmount = String(form.values.custom_amount ?? customAmount);
-            selectedProvider = String(form.values.provider ?? selectedProvider);
-            cardholderName = String(form.values.cardholder_name ?? cardholderName);
-            cardNumber = String(form.values.card_number ?? cardNumber);
-            expiryDate = String(form.values.expiry_date ?? expiryDate);
-            cvv = String(form.values.cvv ?? cvv);
-        }
-    });
+	$effect(() => {
+		selectedPresetAmount = String(form?.values?.preset_amount ?? '300');
+		customAmount = String(form?.values?.custom_amount ?? '');
+		selectedProvider = String(form?.values?.provider ?? 'scb_easy');
+		cardholderName = String(form?.values?.cardholder_name ?? '');
+		cardNumber = String(form?.values?.card_number ?? '');
+		expiryDate = String(form?.values?.expiry_date ?? '');
+		cvv = String(form?.values?.cvv ?? '');
+	});
+
+	$effect(() => {
+		user.update((current) => (current && current.role === 'user' ? { ...current, balance: data.balance } : current));
+	});
+
+	$effect(() => {
+		if (form?.updatedUser) {
+			user.update((current) => (current && current.role === 'user' ? { ...current, ...form.updatedUser } : form.updatedUser));
+		}
+	});
 </script>
 
 <section class="mx-auto max-w-7xl space-y-8">

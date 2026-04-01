@@ -76,11 +76,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $item1 = Item::updateOrCreate(['name' => 'Item 1'], [
-            'name' => 'Item 1',
+        $item1 = Item::updateOrCreate(['name' => 'Fresh Apple'], [
+            'name' => 'Fresh Apple',
             'created_by_id' => $admin1->id,
-            'description' => 'Item 1 description',
-            'price' => 100.00,
+            'description' => 'It is very fresh and sweet',
+            'price' => 40.00,
+            'image_path' => "items/apple.jpg",
             'stock' => 100,
         ]);
 
@@ -128,6 +129,7 @@ class DatabaseSeeder extends Seeder
             'description' => 'Standard issue CS shirt. 100% Cotton.',
             'price' => 250.00,
             'stock' => 50,
+            'image_path' => "items/black_cs_shirt.png",
             'is_active' => true,
         ]);
 
@@ -137,6 +139,7 @@ class DatabaseSeeder extends Seeder
             'description' => 'Warm polyester hoodie for the cold labs.',
             'price' => 600.00,
             'stock' => 20,
+            'image_path' => "items/black_cs_hoodie.png",
             'is_active' => true,
         ]);
 
@@ -146,6 +149,7 @@ class DatabaseSeeder extends Seeder
             'description' => 'Vinyl stickers for your ThinkPad.',
             'price' => 50.00,
             'stock' => 100,
+            'image_path' => "items/cute_sticker.png",
             'is_active' => true,
         ]);
 
@@ -155,6 +159,7 @@ class DatabaseSeeder extends Seeder
             'description' => 'Lightweight cap with embroidered CS logo.',
             'price' => 320.00,
             'stock' => 40,
+            'image_path' => "items/green_csku_cap.png",
             'is_active' => true,
         ]);
 

@@ -263,11 +263,9 @@ class AdminController extends Controller
             Item::query()->whereKey($orderItem->item_id)->increment('stock', $refundQty);
 
             $hasPendingRefunds = $lockedOrder->items->contains(fn ($line) => $line->id !== $orderItem->id && $line->refund_requested_quantity > 0);
-            $allItemsRefunded = $lockedOrder->items->every(function ($line) use ($orderItem, $refundQty) {
-                $effectiveRefunded = $line->refunded_quantity + ($line->id === $orderItem->id ? $refundQty : 0);
-
-                return $effectiveRefunded >= $line->quantity;
-            });
+            $allItemsRefunded = $lockedOrder->items->every(
+                fn ($line) => $line->refunded_quantity >= $line->quantity
+            );
 
             $lockedOrder->update([
                 'status' => $hasPendingRefunds ? 'refunding' : ($allItemsRefunded ? 'refunded' : 'partially_refunded'),

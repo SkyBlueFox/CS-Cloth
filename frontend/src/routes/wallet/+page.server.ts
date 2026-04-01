@@ -1,23 +1,23 @@
-import { fail } from '@sveltejs/kit';
+import { fail, type Actions } from '@sveltejs/kit';
 import { backend, getErrorMessage } from '$lib/server/backend';
 import { requireUser } from '$lib/server/auth';
-import type { Paginated, WalletTransaction } from '$lib/types';
-import type { PageServerLoad, Actions } from './$types';
+import type { Paginated, User, WalletTransaction } from '$lib/types';
+import type { PageServerLoad } from '../$types';
 
-// กำหนด Interface ให้ชัดเจนตามที่ API ส่งมาจริง
+// Define the WalletResponse interface based on the actual API response
 interface WalletResponse {
     balance: number;
     transactions: Paginated<WalletTransaction>;
 }
 
 export const load: PageServerLoad = async (event) => {
-    // ตรวจสอบสิทธิ์การเข้าถึง
+    // Verify user access permissions
     requireUser(event, ['user']);
 
     try {
-        // เรียกข้อมูลจาก Backend
-        // หาก backend function ของคุณมีการ throw error เมื่อ response.ok เป็น false 
-        // มันจะเด้งมาที่ก้อน catch ทันที ไม่ทำให้หน้าเว็บเป็น 500
+        // Fetch wallet data from Backend
+        // If the backend function throws an error when response.ok is false,
+        // it will jump directly to the catch block immediately without causing a 500 error
         const wallet = await backend<WalletResponse>(event, '/wallet');
 
         return {
@@ -26,10 +26,10 @@ export const load: PageServerLoad = async (event) => {
     } catch (err) {
         console.error('Wallet Load Error:', err);
         
-        // แทนที่จะปล่อยให้ 500 เราคืนค่าเริ่มต้นไปให้ UI แสดงผลแทน
+        // Instead of allowing a 500 error, return default values for the UI to display
         return {
             wallet: { balance: 0, transactions: { data: [], meta: { total: 0, current_page: 1, last_page: 1, per_page: 1 } } },
-            error: getErrorMessage(err, 'ไม่สามารถโหลดข้อมูลกระเป๋าเงินได้')
+            error: getErrorMessage(err, 'Unable to load wallet information')
         };
     }
 };
@@ -48,7 +48,7 @@ export const actions: Actions = {
         const expiryDate = form.get('expiry_date')?.toString() || '';
         const cvv = form.get('cvv')?.toString() || '';
 
-        // จัดการเรื่องจำนวนเงิน
+        // Handle amount determination
         const rawAmount = customAmount.trim() !== '' ? customAmount : presetAmount;
         const amount = parseFloat(rawAmount);
 
@@ -62,36 +62,44 @@ export const actions: Actions = {
             cvv
         };
 
-        // ตรวจสอบความถูกต้องเบื้องต้น
+        // Validate the amount value
         if (isNaN(amount) || amount <= 0) {
             return fail(422, {
-                error: 'กรุณาระบุจำนวนเงินที่ต้องการเติม',
+                error: 'Please specify a valid amount to top up',
                 values
             });
         }
 
-        try {
-            const response = await backend<{ message: string }>(event, '/wallet/top-up', {
-                method: 'POST',
-                body: {
-                    amount, // ส่งเป็น number
-                    provider,
-                    cardholder_name: cardholderName,
-                    card_number: cardNumber,
-                    expiry_date: expiryDate,
-                    cvv
-                }
-            });
+		try {
+			const response = await backend<{ message: string; user: User }>(event, '/wallet/top-up', {
+				method: 'POST',
+				body: {
+					amount,
+					provider,
+					cardholder_name: cardholderName,
+					card_number: cardNumber,
+					expiry_date: expiryDate,
+					cvv
+				}
+			});
 
-            return { 
-                success: response?.message || 'ทำรายการสำเร็จ' 
-            };
-        } catch (err) {
-            console.error('Top-up Action Error:', err);
-            return fail(422, {
-                error: getErrorMessage(err, 'เกิดข้อผิดพลาดในการเติมเงิน'),
-                values
-            });
-        }
-    }
+			return {
+				success: response.message,
+				updatedUser: response.user
+			};
+		} catch (error) {
+			return fail(422, {
+				error: getErrorMessage(error, 'Unable to top up wallet.'),
+				values: {
+					preset_amount: presetAmount,
+					custom_amount: customAmount,
+					provider,
+					cardholder_name: cardholderName,
+					card_number: cardNumber,
+					expiry_date: expiryDate,
+					cvv
+				}
+			});
+		}
+	}
 };

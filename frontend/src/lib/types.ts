@@ -7,6 +7,7 @@ export interface User {
 	phone: string | null;
 	role: Role;
 	balance: number;
+	pending_email_change?: string | null;
 	created_at: string | null;
 	deleted_at: string | null;
 }

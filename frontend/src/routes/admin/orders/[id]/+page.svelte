@@ -34,6 +34,10 @@
 		if (!src) return;
 		zoomedEvidenceImage = src;
 	}
+
+	function refundEventsNewestFirst(events: { id: number }[]) {
+		return [...events].reverse();
+	}
 </script>
 
 <section class="space-y-6">
@@ -148,7 +152,7 @@
 							<div class="mt-4 rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
 								<p class="font-medium text-slate-900">Refund history</p>
 								<div class="mt-3 space-y-3">
-									{#each line.refund_events as event (event.id)}
+									{#each refundEventsNewestFirst(line.refund_events) as event (event.id)}
 										<div class="rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
 											<p class="font-medium text-slate-900">
 												{event.event_type === 'requested'

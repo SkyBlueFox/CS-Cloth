@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	let { form } = $props();
+	const otpSent = $derived(Boolean(form?.otpSent));
 </script>
 
 <div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-sky-50/50 to-blue-50 px-4">
@@ -13,7 +14,7 @@
 				<span class="text-2xl font-black tracking-wider">CS</span>
 			</div>
 			<h1 class="text-3xl font-black tracking-tight text-slate-900">Reset Password</h1>
-			<p class="mt-2 text-sm font-bold uppercase tracking-[0.2em] text-blue-600/70">Request a reset link</p>
+			<p class="mt-2 text-sm font-bold uppercase tracking-[0.2em] text-blue-600/70">Request an OTP</p>
 		</div>
 
 		{#if form?.error}
@@ -28,23 +29,70 @@
 			</div>
 		{/if}
 
-		<form class="mt-10 space-y-6" method="POST">
-			<label class="group block">
-				<span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Email Address</span>
-				<input
-					class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
-					name="email"
-					type="email"
-					value={form?.email ?? ''}
-					placeholder="name@company.com"
-					required
-				/>
-			</label>
+		{#if !otpSent}
+			<form class="mt-10 space-y-6" method="POST" action="?/requestOtp">
+				<label class="group block">
+					<span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Email Address</span>
+					<input
+						class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+						name="email"
+						type="email"
+						value={form?.email ?? ''}
+						placeholder="name@company.com"
+						required
+					/>
+				</label>
 
-			<button class="mt-4 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
-				Send Reset Link
-			</button>
-		</form>
+				<button class="mt-4 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
+					Send OTP
+				</button>
+			</form>
+		{:else}
+			<div class="mt-10 rounded-2xl bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700 ring-1 ring-blue-200">
+				Enter the 6-digit OTP sent to <span class="text-slate-900">{form?.email}</span>, then choose your new password.
+			</div>
+
+			<form class="mt-6 space-y-6" method="POST" action="?/resetPassword">
+				<input type="hidden" name="email" value={form?.email ?? ''} />
+
+				<label class="group block">
+					<span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">OTP Code</span>
+					<input
+						class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-center text-lg font-black tracking-[0.35em] text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+						name="otp"
+						inputmode="numeric"
+						maxlength="6"
+						minlength="6"
+						placeholder="000000"
+						required
+					/>
+				</label>
+
+				<label class="group block">
+					<span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">New Password</span>
+					<input
+						class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+						name="password"
+						type="password"
+						required
+					/>
+				</label>
+
+				<label class="group block">
+					<span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Confirm Password</span>
+					<input
+						class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+						name="password_confirmation"
+						type="password"
+						required
+					/>
+				</label>
+
+				<button class="mt-4 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
+					Reset Password
+				</button>
+			</form>
+		{/if}
 
 		<div class="mt-10 border-t border-slate-100 pt-8 text-center">
 			<p class="text-sm font-bold text-slate-500">

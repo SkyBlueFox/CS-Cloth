@@ -17,13 +17,15 @@ use Illuminate\Support\Facades\Route;
 */
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register/request-otp', [AuthController::class, 'registerRequestOtp']);
+    Route::post('/register/verify-otp', [AuthController::class, 'registerVerifyOtp']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
     Route::middleware('api.auth')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::patch('/profile', [AuthController::class, 'updateProfile']);
+        Route::post('/profile/confirm-email-change', [AuthController::class, 'confirmEmailChange']);
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 });

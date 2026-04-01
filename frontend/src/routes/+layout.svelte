@@ -11,8 +11,14 @@
 
     let { children, data } = $props<{ children: Snippet; data: LayoutData }>();
     
-    const currentUser = $derived($user || data.user);
+    const currentUser = $derived(($user && data.user) ? { ...data.user, ...$user } : ($user ?? data.user));
     let sidebarOpen = $state(true);
+
+    $effect(() => {
+        if (data.user && (!$user || $user.id !== data.user.id)) {
+            user.set(data.user);
+        }
+    });
 
     type NavItem = {
         href: string;

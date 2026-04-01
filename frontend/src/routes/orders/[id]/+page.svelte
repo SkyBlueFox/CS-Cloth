@@ -3,8 +3,7 @@
     import { fly } from 'svelte/transition';
 
     let { data, form } = $props();
-
-    const order = $derived(data.order);
+    let selectedRefundReasons = $state<Record<number, string>>({});
 
     const refundReasons = [
         { value: 'damaged_item', label: 'Defective / Damaged' },
@@ -29,6 +28,33 @@
             .filter((event) =>
                 ['placed', 'shipped', 'cancelled'].includes(event.key)
             )
+    const refundReasonLabels: Record<string, string> = {
+        damaged_item: 'Item arrived damaged',
+        wrong_item: 'Wrong item received',
+        missing_parts: 'Missing parts or accessories',
+        not_as_described: 'Item not as described',
+        quality_issue: 'Quality issue',
+        changed_mind: 'No longer needed',
+        other: 'Other'
+    };
+
+    function refundReasonText(reasonCode: string | null, reasonDetail: string | null) {
+        if (!reasonCode) return null;
+        if (reasonCode === 'other') return reasonDetail || 'Other';
+        return refundReasonLabels[reasonCode] ?? reasonCode.replaceAll('_', ' ');
+    }
+
+    function lineItemName(line: (typeof data.order.items)[number]) {
+        return line.item?.name ?? `Item #${line.item_id}`;
+    }
+
+    function selectedReasonFor(lineId: number) {
+        return selectedRefundReasons[lineId] ?? refundReasons[0]?.value ?? '';
+    }
+
+    const timelineEvents: TimelineEvent[] = [
+        ...data.order.status_history
+            .filter((event) => ['placed', 'shipped', 'cancelled'].includes(event.key))
             .map((event) => ({
                 key: `status-${event.key}-${event.timestamp}`,
                 title:
@@ -183,35 +209,48 @@
                                         />
 
                                         <div class="grid gap-6 md:grid-cols-2">
-                                            <select name="quantity" class="rounded-xl border-slate-200 text-sm font-bold">
-                                                {#each Array.from({ length: line.refundable_quantity }, (_, i) => i + 1) as q (q)}
-                                                    <option value={q}>{q}</option>
-                                                {/each}
-                                            </select>
-
-                                            <select name="reason_code" class="rounded-xl border-slate-200 text-sm font-bold">
-                                                {#each refundReasons as r (r.value)}
-                                                    <option value={r.value}>{r.label}</option>
-                                                {/each}
-                                            </select>
+                                            <label class="block group">
+                                                <span class="text-slate-700">Return Quantity</span>
+                                                <select class="mt-2 w-full font-bold text-slate-900" name="quantity">
+                                                    {#each Array.from({ length: line.refundable_quantity }, (_, i) => i + 1) as q (q)}
+                                                        <option value={q}>{q}</option>
+                                                    {/each}
+                                                </select>
+                                            </label>
+                                            <label class="block group">
+                                                <span class="text-slate-700">Reason for Return</span>
+                                                <select
+                                                    class="mt-2 w-full font-bold text-slate-900"
+                                                    name="reason_code"
+                                                    bind:value={selectedRefundReasons[line.id]}
+                                                >
+                                    {#each refundReasons as r (r.value)}<option value={r.value}>{r.label}</option>{/each}
+                                                </select>
+                                            </label>
                                         </div>
-
-                                        <textarea
-                                            name="issue_description"
-                                            rows="3"
-                                            required
-                                        ></textarea>
-
-                                        <input
-                                            name="evidence_image"
-                                            type="file"
-                                            accept="image/*"
-                                            required
-                                        />
-
-                                        <button class="btn-primary bg-amber-600 px-10">
-                                            Submit Request
-                                        </button>
+                                        {#if selectedReasonFor(line.id) === 'other'}
+                                            <label class="block group">
+                                                <span class="text-slate-700">Other Reason</span>
+                                                <input
+                                                    class="mt-2 w-full font-bold text-slate-900"
+                                                    name="reason_detail"
+                                                    type="text"
+                                                    placeholder="Tell us the specific reason..."
+                                                    required
+                                                />
+                                            </label>
+                                        {/if}
+                                        <label class="block group">
+                                            <span class="text-slate-700">Details of the issue</span>
+                                            <textarea class="mt-2 w-full font-bold text-slate-900" name="issue_description" rows="3" placeholder="Explain the defect or problem..." required></textarea>
+                                        </label>
+                                        <div class="flex flex-col gap-6 md:flex-row md:items-end">
+                                            <label class="flex-1 group">
+                                                <span class="text-slate-700">Evidence Image</span>
+                                                <input class="mt-2 w-full font-bold text-slate-900" name="evidence_image" type="file" accept="image/*" required />
+                                            </label>
+                                            <button class="btn-primary bg-amber-600 hover:bg-amber-700 shadow-amber-600/20 px-10" type="submit">Submit Request</button>
+                                        </div>
                                     </form>
                                 </details>
                             {/if}
