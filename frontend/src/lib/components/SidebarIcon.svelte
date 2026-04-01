@@ -5,6 +5,7 @@
 		| 'dashboard'
 		| 'shop'
 		| 'orders'
+		| 'wallet'
 		| 'questions'
 		| 'items'
 		| 'admins'
@@ -30,6 +31,11 @@
 			<path d="M8 12h8" />
 			<path d="M9 16h6" />
 			<path d="M5 4h14v16H5z" />
+		{:else if name === 'wallet'}
+			<path d="M4 7h16v10H4z" />
+			<path d="M4 10h16" />
+			<path d="M15.5 14h2.5" />
+			<path d="M6.5 14h4" />
 		{:else if name === 'questions'}
 			<path d="M7 9h10" />
 			<path d="M7 13h6" />

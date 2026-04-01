@@ -11,6 +11,20 @@ export interface User {
 	deleted_at: string | null;
 }
 
+export interface WalletTransaction {
+	id: number;
+	type: string;
+	provider: string | null;
+	status: string;
+	amount: number;
+	balance_before: number;
+	balance_after: number;
+	reference: string;
+	note: string | null;
+	completed_at: string | null;
+	created_at: string | null;
+}
+
 export interface Address {
 	id: number;
 	label: string;

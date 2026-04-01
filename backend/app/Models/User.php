@@ -49,6 +49,11 @@ class User extends Authenticatable
         return $this->hasMany(UserAddress::class, 'user_id');
     }
 
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class, 'user_id');
+    }
+
     public function getWalletBalanceAttribute(): ?string
     {
         return $this->getAttribute('balance');

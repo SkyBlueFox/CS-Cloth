@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Models\Report;
 use App\Models\User;
 use App\Models\UserAddress;
+use App\Models\WalletTransaction;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
@@ -153,6 +154,23 @@ class ApiData
             'created_at' => $order->created_at?->toIso8601String(),
             'updated_at' => $order->updated_at?->toIso8601String(),
             'status_history' => self::orderStatusHistory($order),
+        ];
+    }
+
+    public static function walletTransaction(WalletTransaction $transaction): array
+    {
+        return [
+            'id' => $transaction->id,
+            'type' => $transaction->type,
+            'provider' => $transaction->provider,
+            'status' => $transaction->status,
+            'amount' => (float) $transaction->amount,
+            'balance_before' => (float) $transaction->balance_before,
+            'balance_after' => (float) $transaction->balance_after,
+            'reference' => $transaction->reference,
+            'note' => $transaction->note,
+            'completed_at' => $transaction->completed_at?->toIso8601String(),
+            'created_at' => $transaction->created_at?->toIso8601String(),
         ];
     }
 

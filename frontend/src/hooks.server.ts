@@ -31,7 +31,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// 🔐 auth guard
-	const protectedPaths = ['/cart', '/checkout', '/orders', '/profile'];
+	const protectedPaths = ['/cart', '/checkout', '/orders', '/profile', '/wallet'];
 
 	if (!event.locals.user && protectedPaths.some(p => event.url.pathname.startsWith(p))) {
 		throw redirect(303, '/login');

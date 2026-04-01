@@ -20,6 +20,7 @@
 	const nav: NavItem[] = [
 		{ href: '/shop', label: 'Shop', roles: ['user'], icon: 'shop' as IconName },
 		{ href: '/orders', label: 'My Orders', roles: ['user'], icon: 'orders' as IconName },
+		{ href: '/wallet', label: 'Wallet', roles: ['user'], icon: 'wallet' as IconName },
 		{ href: '/questions', label: 'My Questions', roles: ['user'], icon: 'questions' as IconName },
 		{ href: '/admin/orders', label: 'Manage Orders', roles: ['admin'], icon: 'orders' as IconName },
 		{ href: '/admin/items', label: 'Manage Items', roles: ['admin'], icon: 'items' as IconName },
