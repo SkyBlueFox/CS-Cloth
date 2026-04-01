@@ -79,6 +79,7 @@ Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function (
     Route::get('/orders/{order}', [AdminController::class, 'showAdminOrder']);
     Route::patch('/orders/{order}/ship', [AdminController::class, 'ship']);
     Route::patch('/orders/{order}/approve-refund', [AdminController::class, 'approveRefund']);
+    Route::patch('/orders/{order}/dismiss-refund', [AdminController::class, 'dismissRefund']);
 
     // Questions
     Route::get('/questions', [AdminController::class, 'questions']);

@@ -11,7 +11,6 @@ use App\Models\UserAddress;
 use App\Support\ApiData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -40,7 +39,7 @@ class OrderController extends Controller
                         });
                 });
             })
-            ->with(['items.item', 'shippingAddress'])
+            ->with(['items.item', 'items.refundEvents', 'shippingAddress'])
             ->latest()
             ->paginate(10);
 
@@ -51,7 +50,7 @@ class OrderController extends Controller
     {
         abort_unless($order->buyer_id === $request->user()->id, 403);
 
-        $order->load(['items.item', 'shippingAddress']);
+        $order->load(['items.item', 'items.refundEvents', 'shippingAddress']);
 
         return response()->json([
             'order' => ApiData::order($order),
@@ -125,7 +124,7 @@ class OrderController extends Controller
             return response()->json(['message' => $exception->getMessage()], 422);
         }
 
-        $order->load(['items.item', 'shippingAddress']);
+        $order->load(['items.item', 'items.refundEvents', 'shippingAddress']);
 
         return response()->json([
             'order' => ApiData::order($order),
@@ -169,7 +168,7 @@ class OrderController extends Controller
             'evidence_image' => ['required', 'image', 'max:10240'],
         ]);
 
-        DB::transaction(function () use ($order, $validated) {
+        DB::transaction(function () use ($order, $validated, $request) {
             $lockedOrder = Order::query()
                 ->whereKey($order->id)
                 ->with('items')
@@ -187,10 +186,6 @@ class OrderController extends Controller
                 abort_unless(filled($validated['reason_detail'] ?? null), 422, 'Please provide a reason detail for Other.');
             }
 
-            if ($orderItem->refund_evidence_image_path) {
-                Storage::disk('public')->delete($orderItem->refund_evidence_image_path);
-            }
-
             $evidencePath = $request->file('evidence_image')->store('refund-evidence', 'public');
 
             $orderItem->update([
@@ -200,6 +195,17 @@ class OrderController extends Controller
                 'refund_issue_description' => $validated['issue_description'],
                 'refund_evidence_image_path' => $evidencePath,
                 'refund_requested_at' => now(),
+            ]);
+
+            $orderItem->refundEvents()->create([
+                'event_type' => 'requested',
+                'quantity' => (int) $validated['quantity'],
+                'reason_code' => $validated['reason_code'],
+                'reason_detail' => $validated['reason_detail'] ?? null,
+                'issue_description' => $validated['issue_description'],
+                'evidence_image_path' => $evidencePath,
+                'acted_by_user_id' => $request->user()->id,
+                'happened_at' => now(),
             ]);
 
             $lockedOrder->update([

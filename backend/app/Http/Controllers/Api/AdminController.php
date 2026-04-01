@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Question;
 use App\Models\User;
 use App\Support\ApiData;
@@ -135,7 +136,7 @@ class AdminController extends Controller
             ->values();
 
         $orders = Order::query()
-            ->with(['buyer', 'items.item'])
+            ->with(['buyer', 'items.item', 'items.refundEvents'])
             ->when($queue === 'shipping', function ($query) {
                 $query->where('status', 'pending');
             })
@@ -165,11 +166,32 @@ class AdminController extends Controller
                 });
             });
 
+        $usesRefundQueueSort = $queue === 'refund';
+
+        if ($usesRefundQueueSort && in_array($sort, ['newest', 'oldest'], true)) {
+            $latestRefundRequestAt = OrderItem::query()
+                ->selectRaw('MAX(refund_requested_at)')
+                ->whereColumn('order_id', 'orders.id')
+                ->where('refund_requested_quantity', '>', 0);
+
+            if ($refundReasons->isNotEmpty()) {
+                $latestRefundRequestAt->whereIn('refund_reason_code', $refundReasons->all());
+            }
+
+            $orders->addSelect([
+                'latest_refund_request_at' => $latestRefundRequestAt,
+            ]);
+        }
+
         match ($sort) {
-            'oldest' => $orders->oldest(),
+            'oldest' => $usesRefundQueueSort
+                ? $orders->orderBy('latest_refund_request_at')->orderBy('created_at')
+                : $orders->oldest(),
             'total_low' => $orders->orderBy('total_price'),
             'total_high' => $orders->orderByDesc('total_price'),
-            default => $orders->latest(),
+            default => $usesRefundQueueSort
+                ? $orders->orderByDesc('latest_refund_request_at')->orderByDesc('created_at')
+                : $orders->latest(),
         };
 
         $orders = $orders->paginate(20);
@@ -179,7 +201,7 @@ class AdminController extends Controller
 
     public function showAdminOrder(Order $order)
     {
-        $order->load(['buyer', 'items.item', 'shippingAddress']);
+        $order->load(['buyer', 'items.item', 'items.refundEvents', 'shippingAddress']);
 
         return response()->json([
             'order' => ApiData::order($order),
@@ -227,6 +249,17 @@ class AdminController extends Controller
                 'refund_approved_at' => now(),
             ]);
 
+            $orderItem->refundEvents()->create([
+                'event_type' => 'approved',
+                'quantity' => $refundQty,
+                'reason_code' => $orderItem->refund_reason_code,
+                'reason_detail' => $orderItem->refund_reason_detail,
+                'issue_description' => $orderItem->refund_issue_description,
+                'evidence_image_path' => $orderItem->refund_evidence_image_path,
+                'acted_by_user_id' => $request->user()->id,
+                'happened_at' => now(),
+            ]);
+
             Item::query()->whereKey($orderItem->item_id)->increment('stock', $refundQty);
 
             $hasPendingRefunds = $lockedOrder->items->contains(fn ($line) => $line->id !== $orderItem->id && $line->refund_requested_quantity > 0);
@@ -246,6 +279,53 @@ class AdminController extends Controller
         });
 
         return response()->json(['message' => 'Refund approved for the selected item request.']);
+    }
+
+    public function dismissRefund(Request $request, Order $order)
+    {
+        if (!in_array($order->status, ['refunding', 'partially_refunded'], true)) {
+            return response()->json(['message' => 'Order is not in a refundable state.'], 422);
+        }
+
+        $validated = $request->validate([
+            'order_item_id' => ['required', 'integer'],
+        ]);
+
+        DB::transaction(function () use ($order, $validated, $request) {
+            $lockedOrder = Order::query()->whereKey($order->id)->with('items')->lockForUpdate()->first();
+
+            $orderItem = $lockedOrder->items->firstWhere('id', (int) $validated['order_item_id']);
+            abort_unless($orderItem, 404, 'Order item not found.');
+            abort_unless($orderItem->refund_requested_quantity > 0, 422, 'This order item has no pending refund request.');
+
+            $dismissedQuantity = $orderItem->refund_requested_quantity;
+
+            $orderItem->update([
+                'refund_requested_quantity' => 0,
+                'refund_dismissed_quantity' => $dismissedQuantity,
+                'refund_dismissed_at' => now(),
+            ]);
+
+            $orderItem->refundEvents()->create([
+                'event_type' => 'dismissed',
+                'quantity' => $dismissedQuantity,
+                'reason_code' => $orderItem->refund_reason_code,
+                'reason_detail' => $orderItem->refund_reason_detail,
+                'issue_description' => $orderItem->refund_issue_description,
+                'evidence_image_path' => $orderItem->refund_evidence_image_path,
+                'acted_by_user_id' => $request->user()->id,
+                'happened_at' => now(),
+            ]);
+
+            $hasPendingRefunds = $lockedOrder->items->contains(fn ($line) => $line->id !== $orderItem->id && $line->refund_requested_quantity > 0);
+            $allItemsRefunded = $lockedOrder->items->every(fn ($line) => $line->refunded_quantity >= $line->quantity);
+
+            $lockedOrder->update([
+                'status' => $hasPendingRefunds ? 'refunding' : ($allItemsRefunded ? 'refunded' : 'shipped'),
+            ]);
+        });
+
+        return response()->json(['message' => 'Refund request dismissed for the selected item.']);
     }
 
     public function questions(Request $request)

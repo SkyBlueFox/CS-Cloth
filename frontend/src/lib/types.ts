@@ -89,6 +89,7 @@ export interface OrderLine {
 	price_at_purchase: number;
 	refund_requested_quantity: number;
 	refunded_quantity: number;
+	refund_dismissed_quantity: number;
 	refundable_quantity: number;
 	refund_reason_code: string | null;
 	refund_reason_detail: string | null;
@@ -97,7 +98,22 @@ export interface OrderLine {
 	refund_evidence_image_url: string | null;
 	refund_requested_at: string | null;
 	refund_approved_at: string | null;
+	refund_dismissed_at: string | null;
+	refund_events: RefundEvent[];
 	item: Item | null;
+}
+
+export interface RefundEvent {
+	id: number;
+	event_type: 'requested' | 'approved' | 'dismissed' | string;
+	quantity: number;
+	reason_code: string | null;
+	reason_detail: string | null;
+	issue_description: string | null;
+	evidence_image_path: string | null;
+	evidence_image_url: string | null;
+	acted_by_user_id: number | null;
+	happened_at: string | null;
 }
 
 export interface OrderStatusEvent {

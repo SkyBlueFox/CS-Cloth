@@ -12,6 +12,7 @@
 		{ value: 'other', label: 'Other' }
 	];
 	const refundReasonLabels = Object.fromEntries(refundReasons.map((reason) => [reason.value, reason.label]));
+	let zoomedEvidenceImage = $state<string | null>(null);
 
 	function formatDate(value: string | null) {
 		if (!value) return 'Not recorded';
@@ -30,6 +31,22 @@
 		}
 
 		return refundReasonLabels[line.refund_reason_code] ?? line.refund_reason_code.replaceAll('_', ' ');
+	}
+
+	function refundEventReasonText(event: (typeof data.order.items)[number]['refund_events'][number]) {
+		if (!event.reason_code) return null;
+
+		if (event.reason_code === 'other') {
+			return event.reason_detail || 'Other';
+		}
+
+		return refundReasonLabels[event.reason_code] ?? event.reason_code.replaceAll('_', ' ');
+	}
+
+	function openEvidenceZoom(path: string | null) {
+		const src = storagePathSrc(path);
+		if (!src) return;
+		zoomedEvidenceImage = src;
 	}
 
 	const timelineEvents = $derived.by(() => {
@@ -54,23 +71,38 @@
 		}
 
 		for (const line of data.order.items) {
-			if (line.refund_requested_at && line.refund_requested_quantity > 0) {
-				const reason = refundReasonText(line);
-				events.push({
-					key: `refund-requested-${line.id}`,
-					title: 'Refund requested',
-					detail: `${line.refund_requested_quantity}x ${line.item?.name ?? `Item #${line.item_id}`} requested for refund${reason ? ` because: ${reason}` : ''}.`,
-					timestamp: line.refund_requested_at
-				});
-			}
+			for (const event of line.refund_events) {
+				if (!event.happened_at) continue;
 
-			if (line.refund_approved_at && line.refunded_quantity > 0) {
-				events.push({
-					key: `refund-approved-${line.id}`,
-					title: 'Refund approved',
-					detail: `${line.refunded_quantity}x ${line.item?.name ?? `Item #${line.item_id}`} approved for refund.`,
-					timestamp: line.refund_approved_at
-				});
+				const itemName = line.item?.name ?? `Item #${line.item_id}`;
+				const reason = refundEventReasonText(event);
+
+				if (event.event_type === 'requested') {
+					events.push({
+						key: `refund-requested-${event.id}`,
+						title: 'Refund requested',
+						detail: `${event.quantity}x ${itemName} requested for refund${reason ? ` because: ${reason}` : ''}.`,
+						timestamp: event.happened_at
+					});
+				}
+
+				if (event.event_type === 'approved') {
+					events.push({
+						key: `refund-approved-${event.id}`,
+						title: 'Refund approved',
+						detail: `${event.quantity}x ${itemName} approved for refund.`,
+						timestamp: event.happened_at
+					});
+				}
+
+				if (event.event_type === 'dismissed') {
+					events.push({
+						key: `refund-dismissed-${event.id}`,
+						title: 'Refund dismissed',
+						detail: `${event.quantity}x ${itemName} refund request was dismissed by the store.`,
+						timestamp: event.happened_at
+					});
+				}
 			}
 		}
 
@@ -152,7 +184,12 @@
 						</div>
 
 						{#if (data.order.status === 'shipped' || data.order.status === 'partially_refunded') && line.refundable_quantity > 0}
-							<form class="mt-5 grid gap-3 rounded-[1.25rem] border border-amber-200 bg-amber-50/60 p-4" method="POST" action="?/refund">
+							<form
+								class="mt-5 grid gap-3 rounded-[1.25rem] border border-amber-200 bg-amber-50/60 p-4"
+								method="POST"
+								enctype="multipart/form-data"
+								action="?/refund"
+							>
 								<input name="order_item_id" type="hidden" value={line.id} />
 								<div>
 									<p class="text-sm font-semibold text-amber-900">Request a refund for this item</p>
@@ -221,11 +258,14 @@
 									<p class="mt-2 text-amber-800">{line.refund_issue_description}</p>
 								{/if}
 								{#if storagePathSrc(line.refund_evidence_image_path)}
-									<img
-										alt="Refund evidence"
-										class="mt-3 h-40 w-full max-w-sm rounded-[1rem] object-cover"
-										src={storagePathSrc(line.refund_evidence_image_path) ?? undefined}
-									/>
+									<button class="mt-3 block text-left" type="button" onclick={() => openEvidenceZoom(line.refund_evidence_image_path)}>
+										<img
+											alt="Refund evidence"
+											class="h-40 w-full max-w-sm rounded-[1rem] object-cover transition hover:opacity-90"
+											src={storagePathSrc(line.refund_evidence_image_path) ?? undefined}
+										/>
+										<span class="mt-2 block text-xs text-amber-700">Click to zoom</span>
+									</button>
 								{/if}
 								{#if line.refund_requested_at}
 									<p class="mt-2 text-xs text-amber-700">Requested on {formatDate(line.refund_requested_at)}</p>
@@ -283,3 +323,15 @@
 		</div>
 	</div>
 </section>
+
+{#if zoomedEvidenceImage}
+	<div class="fixed inset-0 z-50 flex items-center justify-center p-6">
+		<button aria-label="Close image zoom" class="absolute inset-0 bg-slate-950/85" type="button" onclick={() => (zoomedEvidenceImage = null)}></button>
+		<div class="relative z-10 max-h-full max-w-5xl">
+			<button class="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-slate-900" type="button" onclick={() => (zoomedEvidenceImage = null)}>
+				Close
+			</button>
+			<img alt="Refund evidence zoomed" class="max-h-[85vh] max-w-full rounded-[1.5rem] object-contain shadow-2xl" src={zoomedEvidenceImage} />
+		</div>
+	</div>
+{/if}
