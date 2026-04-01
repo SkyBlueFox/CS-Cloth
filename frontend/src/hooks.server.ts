@@ -10,9 +10,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	console.log('--- HOOK DEBUG ---');
 	console.log('Token from Cookie:', event.locals.authToken);
 
-	const publicPaths = ['/login', '/register'];
+	const publicPaths = ['/login', '/register', '/forgot-password'];
+	const isPublicPath = publicPaths.includes(event.url.pathname) || event.url.pathname.startsWith('/reset-password/');
 
-	if (event.locals.authToken && !publicPaths.includes(event.url.pathname)) {
+	if (event.locals.authToken && !isPublicPath) {
 		try {
 			const response = await backend<{ data: { user: User } }>(event, '/auth/me');
 

@@ -8,8 +8,9 @@ use App\Models\User;
 use App\Support\ApiData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthController extends Controller
 {
@@ -18,7 +19,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);
 
         $user = User::create([
@@ -110,7 +111,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'phone' => ['nullable', 'string', 'max:50'],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
+            'password' => ['nullable', 'confirmed', PasswordRule::defaults()],
         ]);
 
         $user->fill([
@@ -134,6 +135,61 @@ class AuthController extends Controller
                     ->values()
                     ->all()
             ]
+        ]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email'],
+        ]);
+
+        $status = PasswordBroker::sendResetLink([
+            'email' => strtolower($validated['email']),
+        ]);
+
+        if ($status !== PasswordBroker::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => __($status),
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Password reset link sent.',
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+        ]);
+
+        $status = PasswordBroker::reset(
+            [
+                'email' => strtolower($validated['email']),
+                'password' => $validated['password'],
+                'password_confirmation' => $validated['password_confirmation'],
+                'token' => $validated['token'],
+            ],
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+            }
+        );
+
+        if ($status !== PasswordBroker::PASSWORD_RESET) {
+            return response()->json([
+                'message' => __($status),
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Password has been reset.',
         ]);
     }
 

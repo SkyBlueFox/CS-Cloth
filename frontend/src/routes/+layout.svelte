@@ -36,7 +36,10 @@
     ];
 
     const visibleNav = $derived(nav.filter((item) => currentUser && item.roles.includes(currentUser.role)));
-    const isPublicPage = $derived(['/login', '/register'].includes($page.url.pathname));
+    const isPublicPage = $derived(
+        ['/login', '/register', '/forgot-password'].includes($page.url.pathname)
+            || $page.url.pathname.startsWith('/reset-password/')
+    );
 </script>
 
 <svelte:head>
@@ -47,7 +50,7 @@
     
     {#if currentUser && !isPublicPage}
         <aside
-            class="fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white transition-all duration-500 lg:static {sidebarOpen ? 'w-72' : 'w-0 -translate-x-full'}"
+            class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r border-slate-200 bg-white transition-all duration-500 lg:static {sidebarOpen ? 'w-72 translate-x-0 opacity-100 pointer-events-auto' : 'w-0 -translate-x-full opacity-0 pointer-events-none'}"
         >
             <div class="flex h-20 shrink-0 items-center border-b border-slate-100 px-8">
                 <a class="text-xl font-black tracking-[0.3em] text-blue-700" href="/">
@@ -80,6 +83,7 @@
                     {#if currentUser}
                         <button
                             onclick={() => (sidebarOpen = !sidebarOpen)}
+                            aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
                             class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
