@@ -10,6 +10,9 @@ return new class extends Migration {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
 
+            // เพิ่มคอลัมน์ order_number ตรงนี้ครับ
+            $table->string('order_number')->unique();
+
             $table->foreignId('buyer_id')->constrained('users')->cascadeOnDelete();
 
             $table->string('status', 20)->default('pending');

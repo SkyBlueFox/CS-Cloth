@@ -16,6 +16,17 @@ return new class extends Migration {
             $table->unsignedInteger('quantity');
             $table->decimal('price_at_purchase', 10, 2);
 
+            // --- ส่วนของระบบ Refund ที่ต้องเพิ่มให้ตรงกับ Model ---
+            $table->unsignedInteger('refund_requested_quantity')->default(0);
+            $table->unsignedInteger('refunded_quantity')->default(0);
+            $table->string('refund_reason_code')->nullable();
+            $table->string('refund_reason_detail')->nullable();
+            $table->text('refund_issue_description')->nullable();
+            $table->string('refund_evidence_image_path')->nullable();
+            $table->timestamp('refund_requested_at')->nullable();
+            $table->timestamp('refund_approved_at')->nullable();
+            // ---------------------------------------------
+
             $table->timestamps();
 
             $table->index(['order_id']);

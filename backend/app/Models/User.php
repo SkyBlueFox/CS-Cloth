@@ -34,12 +34,12 @@ class User extends Authenticatable
         'wallet_balance' => 'decimal:2',
     ];
 
-    public function orders()
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'buyer_id');
     }
 
-    public function questions()
+    public function questions(): HasMany
     {
         return $this->hasMany(Question::class, 'asker_id');
     }
@@ -47,5 +47,10 @@ class User extends Authenticatable
     public function addresses(): HasMany
     {
         return $this->hasMany(UserAddress::class, 'user_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'user_id');
     }
 }
