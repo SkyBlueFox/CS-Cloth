@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { itemImageSrc, storagePathSrc } from '$lib/media';
+	import type { RefundEvent } from '$lib/types';
 
 	let { data, form } = $props();
 	let zoomedEvidenceImage = $state<string | null>(null);
@@ -35,7 +36,7 @@
 		zoomedEvidenceImage = src;
 	}
 
-	function refundEventsNewestFirst(events: { id: number }[]) {
+	function refundEventsNewestFirst(events: RefundEvent[]) {
 		return [...events].reverse();
 	}
 </script>

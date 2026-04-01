@@ -19,7 +19,8 @@ export const load = async (event) => {
 
 		return {
 			...response,
-			addresses: addressesData
+			addresses: addressesData,
+			viewerRole: event.locals.user?.role ?? null
 		};
 	} catch (err) {
 		console.error('Error loading item details:', err);
