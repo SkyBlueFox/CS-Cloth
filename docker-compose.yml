@@ -1,0 +1,7 @@
+name: cs-cloth
+
+include:
+  - path: backend/compose.yaml
+    env_file: backend/.env
+  - path: frontend/docker-compose.yml
+    env_file: frontend/.env
