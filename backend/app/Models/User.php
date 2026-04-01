@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 
@@ -33,6 +34,16 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'balance' => 'decimal:2',
     ];
+
+    /**
+     * Relationship: Items in Cart (Many-to-Many via cart_items table)
+     */
+    public function cartItems(): BelongsToMany
+    {
+        return $this->belongsToMany(Item::class, 'cart_items')
+                    ->withPivot('quantity')
+                    ->withTimestamps();
+    }
 
     public function orders(): HasMany
     {

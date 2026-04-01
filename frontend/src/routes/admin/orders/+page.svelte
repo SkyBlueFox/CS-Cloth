@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { itemImageSrc, storagePathSrc } from '$lib/media';
 	import Pagination from '$lib/components/Pagination.svelte';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	let { data, form } = $props();
 	let zoomedEvidenceImage = $state<string | null>(null);
@@ -14,7 +15,7 @@
 		{ value: 'other', label: 'Other' }
 	];
 	const paginationBasePath = $derived.by(() => {
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 
 		if (data.filters.search) {
 			params.set('search', data.filters.search);
@@ -136,7 +137,7 @@
 						/>
 						All reasons
 					</label>
-					{#each refundReasons as reason}
+					{#each refundReasons as reason (reason.value)}
 						<label class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">
 							<input
 								checked={data.filters.refundReasons.includes(reason.value)}
@@ -165,7 +166,7 @@
 		</div>
 	{:else}
 		<div class="space-y-5">
-			{#each data.orders.data as order}
+			{#each data.orders.data as order (order.id)}
 				<article class="panel space-y-4">
 					<div class="flex flex-wrap items-start justify-between gap-4">
 						<div>
@@ -187,7 +188,7 @@
 					</div>
 					<p class="text-sm text-slate-600">{order.shipping_address_formatted ?? order.shipping_address}</p>
 					<div class="grid gap-3">
-						{#each order.items as line}
+						{#each order.items as line (line.id)}
 							<div class="rounded-[1.25rem] border border-slate-200 p-4">
 								<div class="flex flex-wrap items-start justify-between gap-3">
 									<div>

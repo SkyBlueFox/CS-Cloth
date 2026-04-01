@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Item extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'name',
         'created_by_id',
@@ -25,22 +28,32 @@ class Item extends Model
     ];
 
     protected $appends = ['image_url'];
+
+    /**
+     * Relationship: Users who have this item in cart
+     */
+    public function inUsersCarts(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'cart_items')
+                    ->withPivot('quantity')
+                    ->withTimestamps();
+    }
+
     public function getImageUrlAttribute()
     {
         if (!$this->image_path) {
             return null;
         }
 
-        // This forces the URL to use the APP_URL from .env
-        // rather than the internal Docker hostname
         return asset('storage/' . $this->image_path);
     }
 
-    public function questions()
+    public function questions(): HasMany
     {
-        return $this->hasMany(\App\Models\Question::class, 'item_id');
+        return $this->hasMany(Question::class, 'item_id');
     }
-    public function orderItems()
+
+    public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }

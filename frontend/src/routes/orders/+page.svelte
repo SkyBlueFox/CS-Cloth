@@ -28,6 +28,14 @@
             default: return 'bg-slate-50 text-slate-700 ring-slate-200';
         }
     }
+
+    // Create properly typed pagination meta with safe property access
+    const paginationMeta = $derived({
+        total: data.orders.meta.total,
+        current_page: data.orders.meta.current_page,
+        last_page: data.orders.meta.last_page,
+        per_page: 'per_page' in data.orders.meta ? data.orders.meta.per_page : 10
+    });
 </script>
 
 <section class="mx-auto max-w-6xl space-y-10">
@@ -99,17 +107,17 @@
 
                     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {#each order.items as line (line.id)}
-                            <a class="flex items-center gap-4 rounded-2xl bg-slate-50/50 p-4 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-md hover:ring-blue-200" href={`/items/${line.item_id}`}>
+                            <div class="flex items-center gap-4 rounded-2xl bg-slate-50/50 p-4 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-md">
                                 <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
                                     {#if line.item}
                                         <img alt="" class="h-full w-full object-cover" src={itemImageSrc(line.item)} />
                                     {/if}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="truncate text-sm font-black text-slate-900 tracking-tight hover:text-blue-700">{line.item?.name}</p>
+                                    <p class="truncate text-sm font-black text-slate-900 tracking-tight">{line.item?.name}</p>
                                     <p class="text-[11px] font-bold text-slate-500 uppercase">Qty: {line.quantity}</p>
                                 </div>
-                            </a>
+                            </div>
                         {/each}
                     </div>
                 </div>
@@ -117,5 +125,5 @@
         {/each}
     </div>
 
-    <Pagination basePath={paginationBasePath()} meta={data.orders.meta} />
+    <Pagination basePath={paginationBasePath()} meta={paginationMeta} />
 </section>

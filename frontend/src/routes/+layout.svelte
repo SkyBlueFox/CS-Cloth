@@ -106,6 +106,18 @@
 
                 <div class="flex items-center gap-6">
                     {#if currentUser}
+                        {#if currentUser.role === 'user'}
+                            <a 
+                                href="/cart" 
+                                class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-600 transition-all hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/20"
+                                aria-label="View Cart"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </a>
+                        {/if}
+
                         <div class="hidden text-right sm:block">
                             <p class="text-sm font-black text-slate-900">{currentUser.name}</p>
                             <div class="mt-0.5 inline-flex items-center rounded-full bg-blue-50 px-3 py-0.5 text-[10px] font-black tracking-wider text-blue-700 ring-1 ring-blue-100">
