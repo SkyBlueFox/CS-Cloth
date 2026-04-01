@@ -28,7 +28,7 @@ Route::prefix('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Public / Optional Auth
+| Public / Optional Auth (เชื่อมต่อกับ Shop SvelteKit)
 |--------------------------------------------------------------------------
 */
 Route::middleware('api.optional_auth')->group(function () {
@@ -50,7 +50,7 @@ Route::middleware(['api.auth', 'role:user'])->group(function () {
 
     // Questions
     Route::get('/questions', [UserQuestionController::class, 'index']);
-    Route::post('/items/{item}/questions', [UserQuestionController::class, 'store']);
+    Route::post('/items/{item}/questions', [UserQuestionController::class, 'store'])->name('questions.store');
     Route::post('/questions/{question}/report', [UserQuestionController::class, 'report']);
 
     // Orders
@@ -98,21 +98,18 @@ Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function (
 |--------------------------------------------------------------------------
 */
 Route::middleware(['api.auth', 'role:superadmin'])->prefix('superadmin')->group(function () {
-    // Admins
     Route::get('/admins', [SuperAdminController::class, 'admins']);
     Route::post('/admins', [SuperAdminController::class, 'storeAdmin']);
     Route::patch('/admins/{user}', [SuperAdminController::class, 'updateAdmin']);
     Route::delete('/admins/{user}', [SuperAdminController::class, 'destroyAdmin']);
     Route::patch('/admins/{userId}/restore', [SuperAdminController::class, 'restoreAdmin']);
 
-    // Users
     Route::get('/users', [SuperAdminController::class, 'users']);
     Route::post('/users', [SuperAdminController::class, 'storeUser']);
     Route::patch('/users/{user}', [SuperAdminController::class, 'updateUser']);
     Route::delete('/users/{user}', [SuperAdminController::class, 'destroyUser']);
     Route::patch('/users/{userId}/restore', [SuperAdminController::class, 'restoreUser']);
 
-    // Reports
     Route::get('/reports', [SuperAdminController::class, 'reports']);
     Route::patch('/reports/{report}/resolve', [SuperAdminController::class, 'resolve']);
     Route::patch('/reports/{report}/dismiss', [SuperAdminController::class, 'dismiss']);

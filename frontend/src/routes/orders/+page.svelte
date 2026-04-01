@@ -1,146 +1,121 @@
 <script lang="ts">
-	import { itemImageSrc } from '$lib/media';
-	import Pagination from '$lib/components/Pagination.svelte';
-	import type { Order, PaginationMeta } from '$lib/types';
+    import { itemImageSrc } from '$lib/media';
+    import Pagination from '$lib/components/Pagination.svelte';
+    import { fly } from 'svelte/transition';
+    import { page } from '$app/stores';
 
-	interface OrdersData {
-		orders: {
-			data: Order[];
-			meta: PaginationMeta;
-		};
-		filters: {
-			search: string;
-		};
-	}
+    let { data, form } = $props();
 
-	interface FormData {
-		error?: string;
-		success?: string;
-	}
+    const paginationBasePath = $derived(() => {
+        const url = new URL($page.url);
+        url.searchParams.delete('page');
+        const search = url.searchParams.toString();
+        return `/orders${search ? '?' + search : ''}`;
+    });
 
-	let { data, form } = $props<{ data: OrdersData; form?: FormData }>();
-	const paginationBasePath = $derived.by(() => {
-		const params = new URLSearchParams();
+    function formatDate(date: string) {
+        return new Date(date).toLocaleDateString('th-TH', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+    }
 
-		if (data.filters.search) {
-			params.set('search', data.filters.search);
-		}
-
-		const query = params.toString();
-		return query ? `/orders?${query}` : '/orders';
-	});
-
-	function formatDate(value: string | null) {
-		if (!value) return 'Unknown date';
-
-		return new Intl.DateTimeFormat('en-GB', {
-			dateStyle: 'medium',
-			timeStyle: 'short'
-		}).format(new Date(value));
-	}
+    function getStatusColor(status: string) {
+        switch(status) {
+            case 'pending': return 'bg-amber-50 text-amber-700 ring-amber-200';
+            case 'shipped': return 'bg-blue-50 text-blue-700 ring-blue-200';
+            case 'completed': return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
+            case 'cancelled': return 'bg-rose-50 text-rose-700 ring-rose-200';
+            default: return 'bg-slate-50 text-slate-700 ring-slate-200';
+        }
+    }
 </script>
 
-<section class="space-y-6">
-	<div class="panel">
-		<p class="eyebrow">Orders</p>
-		<h1 class="mt-2 text-3xl font-semibold">Your purchase history</h1>
-		<p class="mt-3 text-sm text-slate-600">Search by item name or order ID to find a past purchase fast.</p>
-	</div>
+<section class="mx-auto max-w-6xl space-y-10">
+    <header class="relative overflow-hidden rounded-[3rem] bg-white border border-slate-200 p-10 shadow-sm">
+        <div class="relative z-10 flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+                <span class="h-1.5 w-10 rounded-full bg-blue-600"></span>
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">Transactions</p>
+            </div>
+            <h1 class="text-4xl font-black tracking-tight text-slate-900">Purchase History</h1>
+            <p class="max-w-md text-sm font-bold leading-relaxed text-slate-600 uppercase tracking-wide">
+                Manage your orders, track shipments and handle returns.
+            </p>
+        </div>
+        <div class="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-slate-50 blur-[80px]"></div>
+    </header>
 
-	<form class="panel flex flex-col gap-3 md:flex-row" method="GET" action="/orders">
-		<input
-			class="w-full rounded-2xl border-slate-300"
-			name="search"
-			placeholder="Search by item name or order ID"
-			type="search"
-			value={data.filters.search}
-		/>
-		<div class="flex gap-3">
-			<button class="btn-primary" type="submit">Search</button>
-			<a class="btn-secondary" href="/orders">Reset</a>
-		</div>
-	</form>
+    <form class="flex flex-col gap-4 md:flex-row" method="GET" action="/orders">
+        <div class="relative flex-1">
+            <svg class="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <input
+                class="w-full rounded-2xl border-slate-200 bg-white pl-14 pr-6 py-4 text-sm font-bold text-slate-900 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                name="search"
+                placeholder="Search by ID or Item name..."
+                type="search"
+                value={data.filters.search}
+            />
+        </div>
+        <div class="flex gap-3">
+            <button class="btn-primary px-8" type="submit">Filter</button>
+            <a class="btn-secondary flex items-center px-8" href="/orders">Reset</a>
+        </div>
+    </form>
 
-	{#if form?.error}
-		<p class="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{form.error}</p>
-	{/if}
-	{#if form?.success}
-		<p class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{form.success}</p>
-	{/if}
+    {#if form?.error || form?.success}
+        <div in:fly={{ y: -10 }} class="rounded-2xl shadow-sm overflow-hidden">
+            {#if form?.error} <p class="bg-rose-50 px-6 py-4 text-sm font-black text-rose-800 ring-1 ring-rose-200">{form.error}</p> {/if}
+            {#if form?.success} <p class="bg-emerald-50 px-6 py-4 text-sm font-black text-emerald-800 ring-1 ring-emerald-200">{form.success}</p> {/if}
+        </div>
+    {/if}
 
-	{#if data.orders.data.length === 0}
-		<div class="panel py-12 text-center">
-			<p class="text-lg font-medium text-slate-800">No orders matched your search.</p>
-			<p class="mt-2 text-sm text-slate-500">Try a different item name or order ID.</p>
-		</div>
-	{:else}
-		<div class="space-y-5">
-			{#each data.orders.data as order (order.id)}
-				<article class="panel space-y-5">
-					<div class="flex flex-wrap items-start justify-between gap-4">
-						<div>
-							<a class="text-xl font-semibold text-sky-950 hover:text-blue-800" href={`/orders/${order.id}`}>
-								Order ID {order.order_number}
-							</a>
-							<p class="mt-1 text-sm text-slate-500">
-								{order.status} · ฿{order.total_price.toFixed(2)} · Placed {formatDate(order.created_at)}
-							</p>
-						</div>
-						<div class="flex gap-3">
-							<a class="btn-secondary rounded-full px-4 py-2 text-sm" href={`/orders/${order.id}`}>View details</a>
-							{#if order.status === 'pending'}
-								<form method="POST" action="?/cancel">
-									<input name="order_id" type="hidden" value={order.id} />
-									<button class="rounded-full border border-rose-300 px-4 py-2 text-sm text-rose-700" type="submit">Cancel</button>
-								</form>
-							{/if}
-							{#if order.status === 'shipped' || order.status === 'partially_refunded'}
-								<a class="rounded-full border border-amber-300 px-4 py-2 text-sm text-amber-700" href={`/orders/${order.id}`}>
-									Request refund
-								</a>
-							{/if}
-						</div>
-					</div>
-					<p class="text-sm text-slate-600">{order.shipping_address_formatted ?? order.shipping_address}</p>
-					<div class="grid gap-3">
-						{#each order.items as line (line.id)}
-							<div class="rounded-[1.5rem] border border-slate-200 p-4">
-								<div class="flex items-center gap-4">
-									<a class="shrink-0" href={`/orders/${order.id}`}>
-										{#if line.item && itemImageSrc(line.item)}
-											<img
-												alt={line.item.name}
-												class="h-20 w-20 rounded-[1.2rem] object-cover transition hover:scale-[1.03]"
-												src={itemImageSrc(line.item) ?? undefined}
-											/>
-										{:else}
-											<div class="subtle-box flex h-20 w-20 items-center justify-center text-xs text-sky-500">No image</div>
-										{/if}
-									</a>
-									<div>
-										<a class="font-medium text-sky-950 hover:text-blue-800" href={`/orders/${order.id}`}>
-											{line.item?.name ?? `Item #${line.item_id}`}
-										</a>
-										<p class="mt-1 text-sm text-slate-500">{line.quantity} × ฿{line.price_at_purchase.toFixed(2)}</p>
-										{#if line.refund_requested_quantity > 0}
-											<p class="mt-1 text-xs font-medium text-amber-700">
-												Refund requested for {line.refund_requested_quantity} item(s)
-											</p>
-										{/if}
-										{#if line.refunded_quantity > 0}
-											<p class="mt-1 text-xs font-medium text-emerald-700">
-												Refund approved for {line.refunded_quantity} item(s)
-											</p>
-										{/if}
-									</div>
-								</div>
-							</div>
-						{/each}
-					</div>
-				</article>
-			{/each}
-		</div>
-	{/if}
+    <div class="space-y-8">
+        {#each data.orders.data as order (order.id)}
+            <article class="group rounded-[3rem] bg-white border border-slate-100 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-blue-900/5 hover:border-blue-100">
+                <div class="p-8 sm:p-10">
+                    <div class="mb-8 flex flex-col justify-between gap-6 border-b border-slate-50 pb-8 sm:flex-row sm:items-center">
+                        <div class="space-y-1">
+                            <a class="text-xl font-black text-slate-900 transition-colors group-hover:text-blue-700 tracking-tight uppercase" href={`/orders/${order.id}`}>
+                                ID: {order.order_number}
+                            </a>
+                            <div class="flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                                {#if order.created_at}
+                                    <span>{formatDate(order.created_at)}</span>
+                                {/if}
+                                <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                                <span class="text-slate-900 font-black">฿{order.total_price.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="rounded-full px-5 py-2 text-[10px] font-black uppercase tracking-widest ring-1 {getStatusColor(order.status)}">
+                                {order.status.replace('_', ' ')}
+                            </span>
+                            <a class="rounded-xl bg-slate-50 px-6 py-2.5 text-[11px] font-black uppercase tracking-widest text-slate-600 transition-all hover:bg-slate-900 hover:text-white" href={`/orders/${order.id}`}>
+                                Details
+                            </a>
+                        </div>
+                    </div>
 
-	<Pagination basePath={paginationBasePath} meta={data.orders.meta} />
+                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {#each order.items as line (line.id)}
+                            <div class="flex items-center gap-4 rounded-2xl bg-slate-50/50 p-4 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-md">
+                                <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                                    {#if line.item}
+                                        <img alt="" class="h-full w-full object-cover" src={itemImageSrc(line.item)} />
+                                    {/if}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-black text-slate-900 tracking-tight">{line.item?.name}</p>
+                                    <p class="text-[11px] font-bold text-slate-500 uppercase">Qty: {line.quantity}</p>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                </div>
+            </article>
+        {/each}
+    </div>
+
+    <Pagination basePath={paginationBasePath()} meta={data.orders.meta} />
 </section>
