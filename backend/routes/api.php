@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\Api\UserQuestionController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\CartController; 
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,7 +33,7 @@ Route::prefix('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Public / Optional Auth (เชื่อมต่อกับ Shop SvelteKit)
+| Public / Optional Auth
 |--------------------------------------------------------------------------
 */
 Route::middleware('api.optional_auth')->group(function () {
@@ -42,25 +43,32 @@ Route::middleware('api.optional_auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| User
+| User Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['api.auth', 'role:user'])->group(function () {
+
+    // Cart System
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{itemId}', [CartController::class, 'update']);
+    Route::delete('/cart/{itemId}', [CartController::class, 'destroy']);
+
     // Addresses
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
     Route::patch('/addresses/{address}', [AddressController::class, 'update']);
     Route::delete('/addresses/{address}', [AddressController::class, 'destroy']);
 
-    // Questions
+    // Questions & Reports
     Route::get('/questions', [UserQuestionController::class, 'index']);
     Route::post('/items/{item}/questions', [UserQuestionController::class, 'store'])->name('questions.store');
     Route::post('/questions/{question}/report', [UserQuestionController::class, 'report']);
 
-    // Orders
+    // Orders (Updated to support Array of items)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::post('/orders', [OrderController::class, 'store']);
+    Route::post('/orders', [OrderController::class, 'store']); // <--- จุด Checkout หลัก
     Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::patch('/orders/{order}/refund', [OrderController::class, 'requestRefund']);
 
@@ -71,11 +79,10 @@ Route::middleware(['api.auth', 'role:user'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin
+| Admin Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function () {
-    // Items
     Route::get('/items', [AdminController::class, 'items']);
     Route::get('/items/{item}', [AdminController::class, 'showItem']);
     Route::post('/items', [AdminController::class, 'storeItem']);
@@ -83,14 +90,12 @@ Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function (
     Route::delete('/items/{item}', [AdminController::class, 'destroyItem']);
     Route::patch('/items/{item}/toggle', [AdminController::class, 'toggleItem']);
 
-    // Orders
     Route::get('/orders', [AdminController::class, 'orders']);
     Route::get('/orders/{order}', [AdminController::class, 'showAdminOrder']);
     Route::patch('/orders/{order}/ship', [AdminController::class, 'ship']);
     Route::patch('/orders/{order}/approve-refund', [AdminController::class, 'approveRefund']);
     Route::patch('/orders/{order}/dismiss-refund', [AdminController::class, 'dismissRefund']);
 
-    // Questions
     Route::get('/questions', [AdminController::class, 'questions']);
     Route::patch('/questions/{question}/answer', [AdminController::class, 'answerQuestion']);
     Route::delete('/questions/{question}/answer', [AdminController::class, 'deleteAnswer']);
@@ -98,7 +103,7 @@ Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function (
 
 /*
 |--------------------------------------------------------------------------
-| SuperAdmin
+| SuperAdmin Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['api.auth', 'role:superadmin'])->prefix('superadmin')->group(function () {
