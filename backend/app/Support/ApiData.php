@@ -118,6 +118,8 @@ class ApiData
             'shipping_address_id' => $order->shipping_address_id,
             'shipping_address_snapshot' => $order->shipping_address_snapshot,
             'shipping_address_formatted' => self::formatAddress($order->shipping_address_snapshot, $order->shipping_address),
+            'delivery_method' => $order->delivery_method,
+            'delivery_method_label' => $order->delivery_method_label ?? self::deliveryMethodLabel($order->delivery_method),
             'buyer' => $order->relationLoaded('buyer') && $order->buyer ? self::user($order->buyer) : null,
             'items' => $order->relationLoaded('items')
                 ? $order->items->map(fn ($orderItem) => [
@@ -248,5 +250,17 @@ class ApiData
         ]);
 
         return $parts ? implode(', ', $parts) : $fallback;
+    }
+
+    private static function deliveryMethodLabel(?string $method): ?string
+    {
+        return match ($method) {
+            'thailand_post' => 'Thailand Post',
+            'kerry_express' => 'Kerry Express',
+            'flash_express' => 'Flash Express',
+            'jt_express' => 'J&T Express',
+            'thunder_express' => 'Thunder Express',
+            default => null,
+        };
     }
 }

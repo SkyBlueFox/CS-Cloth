@@ -3,6 +3,7 @@
     import { fly } from 'svelte/transition';
 
     interface TimelineEvent {
+        key: string;
         title: string;
         detail: string;
         timestamp: string;
@@ -11,10 +12,12 @@
     let { data, form } = $props();
 
     const refundReasons = [
-        { value: 'defective', label: 'Defective / Damaged' },
+        { value: 'damaged_item', label: 'Defective / Damaged' },
         { value: 'wrong_item', label: 'Wrong Item Received' },
-        { value: 'size_mismatch', label: 'Size Mismatch' },
+        { value: 'missing_parts', label: 'Missing Parts or Accessories' },
         { value: 'not_as_described', label: 'Not as Described' },
+        { value: 'quality_issue', label: 'Quality Issue' },
+        { value: 'changed_mind', label: 'Changed My Mind' },
         { value: 'other', label: 'Other' }
     ];
 
@@ -26,7 +29,70 @@
         }).format(new Date(value));
     }
 
-    const timelineEvents: TimelineEvent[] = data.order.timeline || [];
+    const refundReasonLabels: Record<string, string> = {
+        damaged_item: 'Item arrived damaged',
+        wrong_item: 'Wrong item received',
+        missing_parts: 'Missing parts or accessories',
+        not_as_described: 'Item not as described',
+        quality_issue: 'Quality issue',
+        changed_mind: 'No longer needed',
+        other: 'Other'
+    };
+
+    function refundReasonText(reasonCode: string | null, reasonDetail: string | null) {
+        if (!reasonCode) return null;
+        if (reasonCode === 'other') return reasonDetail || 'Other';
+        return refundReasonLabels[reasonCode] ?? reasonCode.replaceAll('_', ' ');
+    }
+
+    function lineItemName(line: (typeof data.order.items)[number]) {
+        return line.item?.name ?? `Item #${line.item_id}`;
+    }
+
+    const timelineEvents: TimelineEvent[] = [
+        ...data.order.status_history
+            .filter((event) => ['placed', 'shipped', 'cancelled'].includes(event.key))
+            .map((event) => ({
+                key: `status-${event.key}-${event.timestamp}`,
+                title:
+                    event.key === 'placed'
+                        ? 'Order placed'
+                        : event.key === 'shipped'
+                            ? 'Order shipped'
+                            : 'Order cancelled',
+                detail:
+                    event.key === 'placed'
+                        ? `Order ${data.order.order_number} was placed successfully.`
+                        : event.key === 'shipped'
+                            ? `Your order was handed to ${data.order.delivery_method_label ?? 'the courier'}.`
+                            : 'This order was cancelled and refunded back to your wallet.',
+                timestamp: event.timestamp
+            })),
+        ...data.order.items.flatMap((line) =>
+            line.refund_events.map((event) => ({
+                key: `refund-${event.id}`,
+                title:
+                    event.event_type === 'requested'
+                        ? 'Refund requested'
+                        : event.event_type === 'approved'
+                            ? 'Refund approved'
+                            : event.event_type === 'dismissed'
+                                ? 'Refund dismissed'
+                                : 'Refund updated',
+                detail:
+                    event.event_type === 'requested'
+                        ? `${event.quantity}x ${lineItemName(line)} requested for refund${refundReasonText(event.reason_code, event.reason_detail) ? ` because: ${refundReasonText(event.reason_code, event.reason_detail)}.` : '.'}`
+                        : event.event_type === 'approved'
+                            ? `${event.quantity}x ${lineItemName(line)} approved for refund.`
+                            : event.event_type === 'dismissed'
+                                ? `${event.quantity}x ${lineItemName(line)} refund request was dismissed by the store.`
+                                : `${event.quantity}x ${lineItemName(line)} refund was updated.`,
+                timestamp: event.happened_at ?? ''
+            }))
+        )
+    ]
+        .filter((event) => !!event.timestamp)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 </script>
 
 <section class="mx-auto max-w-7xl space-y-10">
@@ -38,7 +104,7 @@
             </div>
             <h1 class="text-4xl font-black tracking-tight uppercase">Order #{data.order.order_number}</h1>
             <div class="flex items-center gap-4">
-                <span class="rounded-full bg-white/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-blue-100 ring-1 ring-white/20">
+                <span class="rounded-full bg-white px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-900 ring-1 ring-white/70">
                     Status: {data.order.status}
                 </span>
                 <span class="text-lg font-black text-white">฿{data.order.total_price.toLocaleString()}</span>
@@ -140,7 +206,10 @@
                 </header>
                 <div class="space-y-8 relative">
                     <div class="absolute left-1.5 top-2 bottom-2 w-0.5 bg-slate-200"></div>
-                    {#each timelineEvents as event (event.timestamp)}
+                    {#if timelineEvents.length === 0}
+                        <p class="text-sm font-bold text-slate-500">No status updates recorded yet.</p>
+                    {/if}
+                    {#each timelineEvents as event (event.key)}
                         <div class="relative pl-10">
                             <div class="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-blue-600 shadow-md ring-4 ring-blue-50"></div>
                             <p class="text-sm font-black text-slate-900 uppercase tracking-tight">{event.title}</p>
@@ -161,6 +230,10 @@
                         {data.order.shipping_address_formatted ?? data.order.shipping_address}
                     </p>
                     <div class="border-t border-slate-200 pt-4 space-y-2">
+                        <div class="flex justify-between text-[11px] font-bold uppercase text-slate-400">
+                            <span>Courier</span>
+                            <span class="text-slate-900">{data.order.delivery_method_label ?? 'Not specified'}</span>
+                        </div>
                         <div class="flex justify-between text-[11px] font-bold uppercase text-slate-400">
                             <span>Placed</span>
                             <span class="text-slate-900">{formatDate(data.order.created_at)}</span>

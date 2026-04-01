@@ -27,7 +27,7 @@
 
         <div class="mt-6 flex gap-2">
             <a 
-                href={`/shop/${item.id}`} 
+                href={`/items/${item.id}`} 
                 class="flex-1 rounded-xl bg-slate-50 py-2.5 text-center text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
             >
                 Details

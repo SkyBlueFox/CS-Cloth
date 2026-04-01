@@ -4,7 +4,7 @@ import type { Role, User } from '$lib/types';
 
 export function landingFor(user: User | null) {
 	if (!user) {
-		return '/shop';
+		return '/items';
 	}
 
 	if (user.role === 'superadmin') {
@@ -15,7 +15,7 @@ export function landingFor(user: User | null) {
 		return '/admin/items';
 	}
 
-	return '/shop';
+	return '/items';
 }
 
 export function requireUser(event: RequestEvent, roles?: Role[]) {

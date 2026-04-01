@@ -22,7 +22,7 @@
     };
 
     const nav: NavItem[] = [
-        { href: '/shop', label: 'Shop', roles: ['user'], icon: 'shop' as IconName },
+        { href: '/items', label: 'Items', roles: ['user'], icon: 'shop' as IconName },
         { href: '/orders', label: 'My Orders', roles: ['user'], icon: 'orders' as IconName },
         { href: '/wallet', label: 'Wallet', roles: ['user'], icon: 'wallet' as IconName },
         { href: '/questions', label: 'My Questions', roles: ['user'], icon: 'questions' as IconName },

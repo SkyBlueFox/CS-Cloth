@@ -9,6 +9,7 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'buyer_id', 'shipping_address_id', 'status', 'total_price', 'shipping_address', 'shipping_address_snapshot',
+        'delivery_method', 'delivery_method_label',
         'admin_shipped_id', 'admin_refunded_id',
         'shipped_at', 'cancelled_at', 'refund_requested_at', 'refunded_at',
     ];

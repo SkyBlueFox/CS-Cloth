@@ -11,6 +11,7 @@ use App\Models\UserAddress;
 use App\Support\ApiData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
@@ -22,6 +23,14 @@ class OrderController extends Controller
         'quality_issue',
         'changed_mind',
         'other',
+    ];
+
+    private const DELIVERY_METHODS = [
+        'thailand_post' => 'Thailand Post',
+        'kerry_express' => 'Kerry Express',
+        'flash_express' => 'Flash Express',
+        'jt_express' => 'J&T Express',
+        'thunder_express' => 'Thunder Express',
     ];
 
     public function index(Request $request)
@@ -57,11 +66,13 @@ class OrderController extends Controller
         ]);
     }
 
-    public function store(Request $request, Item $item)
+    public function store(Request $request)
     {
-        $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:'.$item->stock],
+        $validated = $request->validate([
+            'item_id' => ['required', 'integer', 'exists:items,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
             'address_id' => ['nullable', 'integer'],
+            'delivery_method' => ['required', 'string', 'in:' . implode(',', array_keys(self::DELIVERY_METHODS))],
             'shipping_address.label' => ['required_without:address_id', 'string', 'max:100'],
             'shipping_address.recipient_name' => ['required_without:address_id', 'string', 'max:255'],
             'shipping_address.phone' => ['required_without:address_id', 'string', 'max:50'],
@@ -75,14 +86,19 @@ class OrderController extends Controller
             'set_as_default' => ['nullable', 'boolean'],
         ]);
 
+        $item = Item::query()->findOrFail((int) $validated['item_id']);
+
+        if ((int) $validated['quantity'] > $item->stock) {
+            return response()->json(['message' => 'Requested quantity exceeds available stock.'], 422);
+        }
+
         if (!$item->is_active) {
             return response()->json(['message' => 'Item is not active.'], 422);
         }
 
         try {
-            $order = DB::transaction(function () use ($request, $item) {
+            $order = DB::transaction(function () use ($request, $item, $validated) {
                 $qty = (int) $request->input('quantity');
-                $addressId = $request->input('address_id');
 
                 $lockedItem = Item::query()->whereKey($item->id)->lockForUpdate()->first();
                 if ($lockedItem->stock < $qty) {
@@ -98,7 +114,7 @@ class OrderController extends Controller
 
                 [$shippingAddressId, $addressSnapshot] = $this->resolveShippingAddress($request, $user);
 
-                $order = Order::create([
+                $orderData = [
                     'order_number' => Order::generateOrderNumber(),
                     'buyer_id' => $user->id,
                     'shipping_address_id' => $shippingAddressId,
@@ -106,7 +122,17 @@ class OrderController extends Controller
                     'total_price' => $total,
                     'shipping_address' => ApiData::formatAddress($addressSnapshot),
                     'shipping_address_snapshot' => $addressSnapshot,
-                ]);
+                ];
+
+                if (Schema::hasColumn('orders', 'delivery_method')) {
+                    $orderData['delivery_method'] = $validated['delivery_method'];
+                }
+
+                if (Schema::hasColumn('orders', 'delivery_method_label')) {
+                    $orderData['delivery_method_label'] = self::DELIVERY_METHODS[$validated['delivery_method']];
+                }
+
+                $order = Order::create($orderData);
 
                 OrderItem::create([
                     'order_id' => $order->id,

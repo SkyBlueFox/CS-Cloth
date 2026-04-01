@@ -150,6 +150,8 @@ export interface Order {
 	shipping_address_id: number | null;
 	shipping_address_snapshot: Omit<Address, 'id' | 'is_default' | 'formatted'> | null;
 	shipping_address_formatted: string | null;
+	delivery_method: string | null;
+	delivery_method_label: string | null;
 	buyer: User | null;
 	items: OrderLine[];
 	shipped_at: string | null;

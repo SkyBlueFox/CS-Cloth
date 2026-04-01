@@ -195,6 +195,7 @@
 				</div>
 				<p class="text-sm text-slate-600">{data.order.shipping_address_formatted ?? data.order.shipping_address}</p>
 				<div class="grid gap-2 text-sm text-slate-500">
+					<p>Courier: {data.order.delivery_method_label ?? 'Not specified'}</p>
 					<p>Placed: {formatDate(data.order.created_at)}</p>
 					<p>Last updated: {formatDate(data.order.updated_at)}</p>
 					{#if data.order.shipped_at}

@@ -1,8 +1,6 @@
-import { backend } from '$lib/server/backend';
-import type { Item, Paginated } from '$lib/types';
+import { redirect } from '@sveltejs/kit';
 
-export const load = async (event) => {
-	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const items = await backend<Paginated<Item>>(event, '/items?page=' + page, { auth: false });
-	return { items };
+export const load = ({ url }) => {
+	const query = url.searchParams.toString();
+	throw redirect(308, query ? `/items?${query}` : '/items');
 };

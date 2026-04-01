@@ -9,7 +9,7 @@
 <nav class="sticky top-0 z-40 flex items-center justify-between border-b border-slate-100 bg-white/80 px-8 py-4 backdrop-blur-md">
     <div class="flex items-center gap-8">
         <a class="text-sm font-medium tracking-wide text-slate-500 transition-colors hover:text-slate-900" href="/">Home</a>
-        <a class="text-sm font-medium tracking-wide text-slate-500 transition-colors hover:text-slate-900" href="/shop">Shop</a>
+        <a class="text-sm font-medium tracking-wide text-slate-500 transition-colors hover:text-slate-900" href="/items">Items</a>
     </div>
 
     <div class="flex items-center gap-6">
