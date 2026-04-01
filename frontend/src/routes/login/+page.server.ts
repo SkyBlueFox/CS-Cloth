@@ -13,8 +13,10 @@ export const actions = {
 	default: async (event) => {
 		const form = await event.request.formData();
 
+		let token: string;
+
 		try {
-			const response = await backend<{ token: string }>(event, '/auth/login', {
+			const response = await backend<{ data: { token: string } }>(event, '/auth/login', {
 				body: {
 					email: String(form.get('email') ?? ''),
 					password: String(form.get('password') ?? '')
@@ -22,14 +24,15 @@ export const actions = {
 				auth: false
 			});
 
-			setAuthToken(event.cookies, response.token);
-
-			throw redirect(303, '/');
+			token = response.data.token;
 		} catch (error) {
 			return fail(422, {
 				error: getErrorMessage(error, 'Unable to login.'),
 				email: String(form.get('email') ?? '')
 			});
 		}
+
+		setAuthToken(event.cookies, token);
+		throw redirect(303, '/');
 	}
 };

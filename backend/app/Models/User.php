@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
-class User extends Model
+class User extends Authenticatable
 {
-    use SoftDeletes;
+    use SoftDeletes, Notifiable;
 
     const ROLE_SUPERADMIN = 'superadmin';
     const ROLE_ADMIN = 'admin';
@@ -25,9 +26,11 @@ class User extends Model
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     protected $casts = [
+        'email_verified_at' => 'datetime',
         'wallet_balance' => 'decimal:2',
     ];
 
