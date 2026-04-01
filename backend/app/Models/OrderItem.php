@@ -6,11 +6,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
-    protected $fillable = ['order_id', 'item_id', 'quantity', 'price_at_purchase'];
+    protected $fillable = [
+        'order_id',
+        'item_id',
+        'quantity',
+        'price_at_purchase',
+        'refund_requested_quantity',
+        'refunded_quantity',
+        'refund_reason_code',
+        'refund_reason_detail',
+        'refund_issue_description',
+        'refund_evidence_image_path',
+        'refund_requested_at',
+        'refund_approved_at',
+    ];
 
     protected $casts = [
         'price_at_purchase' => 'decimal:2',
         'quantity' => 'integer',
+        'refund_requested_quantity' => 'integer',
+        'refunded_quantity' => 'integer',
+        'refund_requested_at' => 'datetime',
+        'refund_approved_at' => 'datetime',
     ];
 
     public function order()
@@ -21,5 +38,10 @@ class OrderItem extends Model
     public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function getRefundableQuantityAttribute(): int
+    {
+        return max(0, $this->quantity - $this->refunded_quantity - $this->refund_requested_quantity);
     }
 }

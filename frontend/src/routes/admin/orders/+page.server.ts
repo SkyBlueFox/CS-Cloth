@@ -6,9 +6,35 @@ import type { Order, Paginated } from '$lib/types';
 export const load = async (event) => {
 	requireUser(event, ['admin']);
 	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const orders = await backend<Paginated<Order>>(event, `/admin/orders?page=${page}`);
+	const search = event.url.searchParams.get('search')?.trim() ?? '';
+	const sort = event.url.searchParams.get('sort')?.trim() ?? 'newest';
+	const queue = event.url.searchParams.get('queue')?.trim() ?? 'shipping';
+	const refundReasons = event.url.searchParams.getAll('refund_reasons').filter(Boolean);
+	const params = new URLSearchParams({
+		page: String(page),
+		sort,
+		queue
+	});
 
-	return { orders };
+	if (search) {
+		params.set('search', search);
+	}
+
+	for (const refundReason of refundReasons) {
+		params.append('refund_reasons', refundReason);
+	}
+
+	const orders = await backend<Paginated<Order>>(event, `/admin/orders?${params.toString()}`);
+
+	return {
+		orders,
+		filters: {
+			search,
+			sort,
+			queue,
+			refundReasons
+		}
+	};
 };
 
 export const actions = {
@@ -24,16 +50,4 @@ export const actions = {
 
 		return { success: 'Order shipped.' };
 	},
-	refund: async (event) => {
-		requireUser(event, ['admin']);
-		const form = await event.request.formData();
-
-		try {
-			await backend(event, `/admin/orders/${form.get('order_id')}/approve-refund`, { method: 'PATCH' });
-		} catch (error) {
-			return fail(422, { error: getErrorMessage(error, 'Unable to approve refund.') });
-		}
-
-		return { success: 'Refund approved.' };
-	}
 };

@@ -35,6 +35,15 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('asd123'),
             'role' => User::ROLE_USER,
             'email_verified_at' => now(),
+            'balance' => 5000,
+        ]);
+
+        $customer2 = User::updateOrCreate(['email' => 'may@cloth.com'], [
+            'name' => 'May Customer',
+            'password' => Hash::make('asd123'),
+            'role' => User::ROLE_USER,
+            'email_verified_at' => now(),
+            'balance' => 4200,
         ]);
 
         $primaryAddress = UserAddress::updateOrCreate(
@@ -47,6 +56,21 @@ class DatabaseSeeder extends Seeder
                 'district' => 'Chatuchak',
                 'province' => 'Bangkok',
                 'postal_code' => '10900',
+                'country' => 'Thailand',
+                'is_default' => true,
+            ]
+        );
+
+        $secondaryAddress = UserAddress::updateOrCreate(
+            ['user_id' => $customer2->id, 'label' => 'Dorm'],
+            [
+                'recipient_name' => $customer2->name,
+                'phone' => '0898765432',
+                'line_1' => '77 Dormitory Road',
+                'line_2' => 'Room 908',
+                'district' => 'Bang Khen',
+                'province' => 'Bangkok',
+                'postal_code' => '10220',
                 'country' => 'Thailand',
                 'is_default' => true,
             ]
@@ -125,23 +149,37 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        $cap = Item::updateOrCreate(['name' => 'CS Baseball Cap'], [
+            'name' => 'CS Baseball Cap',
+            'created_by_id' => $admin1->id,
+            'description' => 'Lightweight cap with embroidered CS logo.',
+            'price' => 320.00,
+            'stock' => 40,
+            'is_active' => true,
+        ]);
+
         $homeSnapshot = $primaryAddress->toSnapshot();
+        $dormSnapshot = $secondaryAddress->toSnapshot();
 
         $order1 = Order::updateOrCreate(['buyer_id' => $customer1->id, 'status' => 'pending', 'total_price' => 500.00], [
+            'order_number' => '260401PN10TSH1',
             'buyer_id' => $customer1->id,
             'shipping_address_id' => $primaryAddress->id,
             'status' => 'pending',
             'total_price' => 500.00,
-            'shipping_address' => '123 Ngamwongwan Rd, Chatuchak, Bangkok',
+            'shipping_address' => '123 Ngamwongwan Rd, Chatuchak, Bangkok, 10900, Thailand',
             'shipping_address_snapshot' => $homeSnapshot,
         ]);
 
         OrderItem::updateOrCreate(['order_id' => $order1->id, 'item_id' => $shirt->id], [
             'quantity' => 2,
             'price_at_purchase' => 250.00,
+            'refund_requested_quantity' => 0,
+            'refunded_quantity' => 0,
         ]);
 
         $order2 = Order::updateOrCreate(['buyer_id' => $customer1->id, 'status' => 'refunding', 'total_price' => 600.00], [
+            'order_number' => '260401RF21HOD9',
             'buyer_id' => $customer1->id,
             'shipping_address_id' => $primaryAddress->id,
             'status' => 'refunding',
@@ -164,6 +202,103 @@ class DatabaseSeeder extends Seeder
         OrderItem::updateOrCreate(['order_id' => $order2->id, 'item_id' => $hoodie->id], [
             'quantity' => 1,
             'price_at_purchase' => 600.00,
+            'refund_requested_quantity' => 1,
+            'refunded_quantity' => 0,
+            'refund_reason_code' => 'damaged_item',
+            'refund_reason_detail' => null,
+            'refund_issue_description' => 'The hoodie zipper arrived broken and the front pocket seam is torn.',
+            'refund_requested_at' => now(),
+        ]);
+
+        $order3 = Order::updateOrCreate(['buyer_id' => $customer1->id, 'status' => 'partially_refunded', 'total_price' => 750.00], [
+            'order_number' => '260401PR32APP7',
+            'buyer_id' => $customer1->id,
+            'shipping_address_id' => $primaryAddress->id,
+            'status' => 'partially_refunded',
+            'total_price' => 750.00,
+            'shipping_address' => '123 Ngamwongwan Rd, Chatuchak, Bangkok, 10900, Thailand',
+            'shipping_address_snapshot' => $homeSnapshot,
+            'shipped_at' => now()->subDays(6),
+            'refund_requested_at' => now()->subDays(3),
+            'refunded_at' => now()->subDays(2),
+        ]);
+
+        OrderItem::updateOrCreate(['order_id' => $order3->id, 'item_id' => $shirt->id], [
+            'quantity' => 3,
+            'price_at_purchase' => 250.00,
+            'refund_requested_quantity' => 0,
+            'refunded_quantity' => 1,
+            'refund_reason_code' => 'quality_issue',
+            'refund_reason_detail' => null,
+            'refund_issue_description' => 'One shirt had a badly misprinted logo while the other two were fine.',
+            'refund_requested_at' => now()->subDays(3),
+            'refund_approved_at' => now()->subDays(2),
+        ]);
+
+        $order4 = Order::updateOrCreate(['buyer_id' => $customer2->id, 'status' => 'shipped', 'total_price' => 640.00], [
+            'order_number' => '260401SH43STK8',
+            'buyer_id' => $customer2->id,
+            'shipping_address_id' => $secondaryAddress->id,
+            'status' => 'shipped',
+            'total_price' => 640.00,
+            'shipping_address' => '77 Dormitory Road, Room 908, Bang Khen, Bangkok, 10220, Thailand',
+            'shipping_address_snapshot' => $dormSnapshot,
+            'shipped_at' => now()->subDay(),
+        ]);
+
+        OrderItem::updateOrCreate(['order_id' => $order4->id, 'item_id' => $cap->id], [
+            'quantity' => 2,
+            'price_at_purchase' => 320.00,
+            'refund_requested_quantity' => 0,
+            'refunded_quantity' => 0,
+        ]);
+
+        $order5 = Order::updateOrCreate(['buyer_id' => $customer2->id, 'status' => 'refunding', 'total_price' => 150.00], [
+            'order_number' => '260401RF54STK2',
+            'buyer_id' => $customer2->id,
+            'shipping_address_id' => $secondaryAddress->id,
+            'status' => 'refunding',
+            'total_price' => 150.00,
+            'shipping_address' => '77 Dormitory Road, Room 908, Bang Khen, Bangkok, 10220, Thailand',
+            'shipping_address_snapshot' => $dormSnapshot,
+            'shipped_at' => now()->subDays(4),
+            'refund_requested_at' => now()->subHours(8),
+        ]);
+
+        OrderItem::updateOrCreate(['order_id' => $order5->id, 'item_id' => $sticker->id], [
+            'quantity' => 3,
+            'price_at_purchase' => 50.00,
+            'refund_requested_quantity' => 1,
+            'refunded_quantity' => 0,
+            'refund_reason_code' => 'other',
+            'refund_reason_detail' => 'Wrong design',
+            'refund_issue_description' => 'One of the sticker sheets has the wrong artwork printed on it.',
+            'refund_requested_at' => now()->subHours(8),
+        ]);
+
+        $order6 = Order::updateOrCreate(['buyer_id' => $customer2->id, 'status' => 'refunded', 'total_price' => 320.00], [
+            'order_number' => '260401RF65CAP4',
+            'buyer_id' => $customer2->id,
+            'shipping_address_id' => $secondaryAddress->id,
+            'status' => 'refunded',
+            'total_price' => 320.00,
+            'shipping_address' => '77 Dormitory Road, Room 908, Bang Khen, Bangkok, 10220, Thailand',
+            'shipping_address_snapshot' => $dormSnapshot,
+            'shipped_at' => now()->subDays(10),
+            'refund_requested_at' => now()->subDays(8),
+            'refunded_at' => now()->subDays(7),
+        ]);
+
+        OrderItem::updateOrCreate(['order_id' => $order6->id, 'item_id' => $cap->id], [
+            'quantity' => 1,
+            'price_at_purchase' => 320.00,
+            'refund_requested_quantity' => 0,
+            'refunded_quantity' => 1,
+            'refund_reason_code' => 'wrong_item',
+            'refund_reason_detail' => null,
+            'refund_issue_description' => 'Received the wrong hat color and support approved the refund.',
+            'refund_requested_at' => now()->subDays(8),
+            'refund_approved_at' => now()->subDays(7),
         ]);
     }
 }

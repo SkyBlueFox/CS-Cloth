@@ -11,18 +11,51 @@ use App\Models\UserAddress;
 use App\Support\ApiData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
+    private const REFUND_REASON_CODES = [
+        'damaged_item',
+        'wrong_item',
+        'missing_parts',
+        'not_as_described',
+        'quality_issue',
+        'changed_mind',
+        'other',
+    ];
+
     public function index(Request $request)
     {
+        $search = trim((string) $request->query('search', ''));
+
         $orders = Order::query()
             ->where('buyer_id', $request->user()->id)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('order_number', 'like', "%{$search}%")
+                        ->orWhereHas('items.item', function ($itemQuery) use ($search) {
+                            $itemQuery->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->with(['items.item', 'shippingAddress'])
             ->latest()
             ->paginate(10);
 
         return response()->json(ApiData::pagination($orders, fn (Order $order) => ApiData::order($order)));
+    }
+
+    public function show(Request $request, Order $order)
+    {
+        abort_unless($order->buyer_id === $request->user()->id, 403);
+
+        $order->load(['items.item', 'shippingAddress']);
+
+        return response()->json([
+            'order' => ApiData::order($order),
+        ]);
     }
 
     public function store(Request $request, Item $item)
@@ -67,6 +100,7 @@ class OrderController extends Controller
                 [$shippingAddressId, $addressSnapshot] = $this->resolveShippingAddress($request, $user);
 
                 $order = Order::create([
+                    'order_number' => Order::generateOrderNumber(),
                     'buyer_id' => $user->id,
                     'shipping_address_id' => $shippingAddressId,
                     'status' => 'pending',
@@ -126,9 +160,47 @@ class OrderController extends Controller
     {
         abort_unless($order->buyer_id === $request->user()->id, 403);
 
-        DB::transaction(function () use ($order) {
-            $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->first();
-            abort_unless($lockedOrder->status === 'shipped', 400, 'Only shipped orders can request a refund.');
+        $validated = $request->validate([
+            'order_item_id' => ['required', 'integer'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'reason_code' => ['required', 'string', 'in:' . implode(',', self::REFUND_REASON_CODES)],
+            'reason_detail' => ['nullable', 'string', 'max:255'],
+            'issue_description' => ['required', 'string', 'min:10', 'max:2000'],
+            'evidence_image' => ['required', 'image', 'max:10240'],
+        ]);
+
+        DB::transaction(function () use ($order, $validated) {
+            $lockedOrder = Order::query()
+                ->whereKey($order->id)
+                ->with('items')
+                ->lockForUpdate()
+                ->first();
+            abort_unless(in_array($lockedOrder->status, ['shipped', 'partially_refunded', 'refunding'], true), 400, 'Only shipped orders can request a refund.');
+
+            $orderItem = $lockedOrder->items->firstWhere('id', (int) $validated['order_item_id']);
+            abort_unless($orderItem, 404, 'Order item not found.');
+
+            $availableQuantity = max(0, $orderItem->quantity - $orderItem->refunded_quantity - $orderItem->refund_requested_quantity);
+            abort_unless((int) $validated['quantity'] <= $availableQuantity, 422, 'Requested refund quantity is not available.');
+
+            if ($validated['reason_code'] === 'other') {
+                abort_unless(filled($validated['reason_detail'] ?? null), 422, 'Please provide a reason detail for Other.');
+            }
+
+            if ($orderItem->refund_evidence_image_path) {
+                Storage::disk('public')->delete($orderItem->refund_evidence_image_path);
+            }
+
+            $evidencePath = $request->file('evidence_image')->store('refund-evidence', 'public');
+
+            $orderItem->update([
+                'refund_requested_quantity' => (int) $validated['quantity'],
+                'refund_reason_code' => $validated['reason_code'],
+                'refund_reason_detail' => $validated['reason_detail'] ?? null,
+                'refund_issue_description' => $validated['issue_description'],
+                'refund_evidence_image_path' => $evidencePath,
+                'refund_requested_at' => now(),
+            ]);
 
             $lockedOrder->update([
                 'status' => 'refunding',
