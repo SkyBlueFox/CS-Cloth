@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\Api\UserQuestionController;
+use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -58,6 +59,10 @@ Route::middleware(['api.auth', 'role:user'])->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::patch('/orders/{order}/refund', [OrderController::class, 'requestRefund']);
+
+    // Wallet
+    Route::get('/wallet', [WalletController::class, 'index']);
+    Route::post('/wallet/top-up', [WalletController::class, 'topUp']);
 });
 
 /*
@@ -79,6 +84,7 @@ Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function (
     Route::get('/orders/{order}', [AdminController::class, 'showAdminOrder']);
     Route::patch('/orders/{order}/ship', [AdminController::class, 'ship']);
     Route::patch('/orders/{order}/approve-refund', [AdminController::class, 'approveRefund']);
+    Route::patch('/orders/{order}/dismiss-refund', [AdminController::class, 'dismissRefund']);
 
     // Questions
     Route::get('/questions', [AdminController::class, 'questions']);

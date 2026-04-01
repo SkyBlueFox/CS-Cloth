@@ -3,6 +3,7 @@
 	import Pagination from '$lib/components/Pagination.svelte';
 
 	let { data, form } = $props();
+	let zoomedEvidenceImage = $state<string | null>(null);
 	const refundReasons = [
 		{ value: 'damaged_item', label: 'Item arrived damaged' },
 		{ value: 'wrong_item', label: 'Wrong item received' },
@@ -74,6 +75,12 @@
 
 		form.requestSubmit();
 	}
+
+	function openEvidenceZoom(path: string | null) {
+		const src = storagePathSrc(path);
+		if (!src) return;
+		zoomedEvidenceImage = src;
+	}
 </script>
 
 <section class="space-y-6">
@@ -96,6 +103,7 @@
 		<label class="block">
 			<span class="mb-1 block text-sm font-medium text-slate-700">Show queue</span>
 			<select class="w-full rounded-2xl border-slate-300" name="queue" onchange={(event) => event.currentTarget.form?.requestSubmit()}>
+				<option value="all" selected={data.filters.queue === 'all'}>All orders</option>
 				<option value="shipping" selected={data.filters.queue === 'shipping'}>Orders waiting shipping</option>
 				<option value="refund" selected={data.filters.queue === 'refund'}>Orders waiting refund</option>
 			</select>
@@ -224,11 +232,14 @@
 											<p class="mt-2 text-amber-800">{line.refund_issue_description}</p>
 										{/if}
 										{#if storagePathSrc(line.refund_evidence_image_path)}
-											<img
-												alt="Refund evidence"
-												class="mt-3 h-32 w-full max-w-xs rounded-[1rem] object-cover"
-												src={storagePathSrc(line.refund_evidence_image_path) ?? undefined}
-											/>
+											<button class="mt-3 block text-left" type="button" onclick={() => openEvidenceZoom(line.refund_evidence_image_path)}>
+												<img
+													alt="Refund evidence"
+													class="h-32 w-full max-w-xs rounded-[1rem] object-cover transition hover:opacity-90"
+													src={storagePathSrc(line.refund_evidence_image_path) ?? undefined}
+												/>
+												<span class="mt-2 block text-xs text-amber-700">Click to zoom</span>
+											</button>
 										{/if}
 										{#if line.refund_requested_at}
 											<p class="mt-2 text-xs text-amber-700">Requested on {formatDate(line.refund_requested_at)}</p>
@@ -253,3 +264,15 @@
 	{/if}
 	<Pagination basePath={paginationBasePath} meta={data.orders.meta} />
 </section>
+
+{#if zoomedEvidenceImage}
+	<div class="fixed inset-0 z-50 flex items-center justify-center p-6">
+		<button aria-label="Close image zoom" class="absolute inset-0 bg-slate-950/85" type="button" onclick={() => (zoomedEvidenceImage = null)}></button>
+		<div class="relative z-10 max-h-full max-w-5xl">
+			<button class="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-slate-900" type="button" onclick={() => (zoomedEvidenceImage = null)}>
+				Close
+			</button>
+			<img alt="Refund evidence zoomed" class="max-h-[85vh] max-w-full rounded-[1.5rem] object-contain shadow-2xl" src={zoomedEvidenceImage} />
+		</div>
+	</div>
+{/if}

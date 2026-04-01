@@ -13,12 +13,14 @@ class OrderItem extends Model
         'price_at_purchase',
         'refund_requested_quantity',
         'refunded_quantity',
+        'refund_dismissed_quantity',
         'refund_reason_code',
         'refund_reason_detail',
         'refund_issue_description',
         'refund_evidence_image_path',
         'refund_requested_at',
         'refund_approved_at',
+        'refund_dismissed_at',
     ];
 
     protected $casts = [
@@ -26,8 +28,10 @@ class OrderItem extends Model
         'quantity' => 'integer',
         'refund_requested_quantity' => 'integer',
         'refunded_quantity' => 'integer',
+        'refund_dismissed_quantity' => 'integer',
         'refund_requested_at' => 'datetime',
         'refund_approved_at' => 'datetime',
+        'refund_dismissed_at' => 'datetime',
     ];
 
     public function order()
@@ -38,6 +42,11 @@ class OrderItem extends Model
     public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function refundEvents()
+    {
+        return $this->hasMany(OrderItemRefundEvent::class)->orderBy('happened_at')->orderBy('id');
     }
 
     public function getRefundableQuantityAttribute(): int

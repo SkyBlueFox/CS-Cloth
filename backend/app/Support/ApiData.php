@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Models\Report;
 use App\Models\User;
 use App\Models\UserAddress;
+use App\Models\WalletTransaction;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
@@ -119,6 +120,7 @@ class ApiData
                     'price_at_purchase' => (float) $orderItem->price_at_purchase,
                     'refund_requested_quantity' => (int) ($orderItem->refund_requested_quantity ?? 0),
                     'refunded_quantity' => (int) ($orderItem->refunded_quantity ?? 0),
+                    'refund_dismissed_quantity' => (int) ($orderItem->refund_dismissed_quantity ?? 0),
                     'refundable_quantity' => max(0, (int) $orderItem->quantity - (int) ($orderItem->refunded_quantity ?? 0) - (int) ($orderItem->refund_requested_quantity ?? 0)),
                     'refund_reason_code' => $orderItem->refund_reason_code,
                     'refund_reason_detail' => $orderItem->refund_reason_detail,
@@ -127,6 +129,21 @@ class ApiData
                     'refund_evidence_image_url' => $orderItem->refund_evidence_image_path ? Storage::disk('public')->url($orderItem->refund_evidence_image_path) : null,
                     'refund_requested_at' => $orderItem->refund_requested_at?->toIso8601String(),
                     'refund_approved_at' => $orderItem->refund_approved_at?->toIso8601String(),
+                    'refund_dismissed_at' => $orderItem->refund_dismissed_at?->toIso8601String(),
+                    'refund_events' => $orderItem->relationLoaded('refundEvents')
+                        ? $orderItem->refundEvents->map(fn ($event) => [
+                            'id' => $event->id,
+                            'event_type' => $event->event_type,
+                            'quantity' => (int) $event->quantity,
+                            'reason_code' => $event->reason_code,
+                            'reason_detail' => $event->reason_detail,
+                            'issue_description' => $event->issue_description,
+                            'evidence_image_path' => $event->evidence_image_path,
+                            'evidence_image_url' => $event->evidence_image_path ? Storage::disk('public')->url($event->evidence_image_path) : null,
+                            'acted_by_user_id' => $event->acted_by_user_id,
+                            'happened_at' => $event->happened_at?->toIso8601String(),
+                        ])->values()->all()
+                        : [],
                     'item' => $orderItem->relationLoaded('item') && $orderItem->item ? self::item($orderItem->item) : null,
                 ])->values()->all()
                 : [],
@@ -137,6 +154,23 @@ class ApiData
             'created_at' => $order->created_at?->toIso8601String(),
             'updated_at' => $order->updated_at?->toIso8601String(),
             'status_history' => self::orderStatusHistory($order),
+        ];
+    }
+
+    public static function walletTransaction(WalletTransaction $transaction): array
+    {
+        return [
+            'id' => $transaction->id,
+            'type' => $transaction->type,
+            'provider' => $transaction->provider,
+            'status' => $transaction->status,
+            'amount' => (float) $transaction->amount,
+            'balance_before' => (float) $transaction->balance_before,
+            'balance_after' => (float) $transaction->balance_after,
+            'reference' => $transaction->reference,
+            'note' => $transaction->note,
+            'completed_at' => $transaction->completed_at?->toIso8601String(),
+            'created_at' => $transaction->created_at?->toIso8601String(),
         ];
     }
 

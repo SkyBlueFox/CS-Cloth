@@ -20,7 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'wallet_balance',
+        'balance',
         'role',
     ];
 
@@ -31,7 +31,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'wallet_balance' => 'decimal:2',
+        'balance' => 'decimal:2',
     ];
 
     public function orders(): HasMany
@@ -48,6 +48,23 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserAddress::class, 'user_id');
     }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class, 'user_id');
+    }
+
+    public function getWalletBalanceAttribute(): ?string
+    {
+        return $this->getAttribute('balance');
+    }
+
+    public function setWalletBalanceAttribute($value): void
+    {
+        $this->attributes['balance'] = $value;
+    }
+}
+
 
     public function reports(): HasMany
     {

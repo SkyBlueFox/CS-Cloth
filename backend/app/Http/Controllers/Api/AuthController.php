@@ -77,7 +77,7 @@ class AuthController extends Controller
             'data' => [
                 'user' => array_merge(
                     ApiData::user($user),
-                    ['wallet_balance' => $user->wallet_balance]
+                    ['wallet_balance' => $user->balance]
                 ),
                 'addresses' => $user->addresses
                     ->map(fn ($address) => ApiData::address($address))

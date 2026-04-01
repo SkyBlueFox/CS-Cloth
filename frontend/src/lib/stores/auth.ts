@@ -5,7 +5,8 @@ export type User = {
   name: string;
   email: string;
   role: 'user' | 'admin' | 'superadmin';
-  wallet_balance: number;
+  balance: number;
+  wallet_balance?: number;
 };
 
 export const user = writable<User | null>(null);
