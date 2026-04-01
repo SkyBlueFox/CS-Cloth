@@ -12,3 +12,11 @@ services:
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
+    networks:
+      - default
+      - backend_sail
+
+networks:
+  default:
+  backend_sail:
+    external: true
