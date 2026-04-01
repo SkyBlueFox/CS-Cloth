@@ -3,6 +3,41 @@
     import { fly, fade } from 'svelte/transition';
 
     let { data, form } = $props();
+
+    function reportTone(question: (typeof data.questions.data)[number]) {
+        if (!question.answer_text) {
+            return {
+                badgeClass: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+                badgeText: 'Awaiting Staff',
+                note:
+                    question.current_user_report_status === 'resolved'
+                        ? 'Your previous report was resolved and the reply was removed.'
+                        : null
+            };
+        }
+
+        if (question.current_user_report_status === 'pending') {
+            return {
+                badgeClass: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+                badgeText: 'Report Pending',
+                note: 'Your report is waiting for superadmin review.'
+            };
+        }
+
+        if (question.current_user_report_status === 'dismissed') {
+            return {
+                badgeClass: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
+                badgeText: 'Answered',
+                note: 'Your previous report was dismissed.'
+            };
+        }
+
+        return {
+            badgeClass: 'bg-blue-600 text-white shadow-lg shadow-blue-600/20',
+            badgeText: 'Answered',
+            note: null
+        };
+    }
 </script>
 
 <section class="mx-auto max-w-5xl space-y-10">
@@ -60,16 +95,17 @@
                             </div>
                         </div>
                         
-                        {#if !question.answer_text}
-                            <span class="inline-flex items-center rounded-full bg-amber-50 px-5 py-2 text-[10px] font-black uppercase tracking-widest text-amber-700 ring-1 ring-amber-200">
-                                <span class="mr-2 h-2 w-2 animate-pulse rounded-full bg-amber-500"></span>
-                                Awaiting Staff
+                        <div class="text-right">
+                            <span class={`inline-flex items-center rounded-full px-5 py-2 text-[10px] font-black uppercase tracking-widest ${reportTone(question).badgeClass}`}>
+                                {#if !question.answer_text}
+                                    <span class="mr-2 h-2 w-2 animate-pulse rounded-full bg-current"></span>
+                                {/if}
+                                {reportTone(question).badgeText}
                             </span>
-                        {:else}
-                            <span class="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-600/20">
-                                Resolved
-                            </span>
-                        {/if}
+                            {#if reportTone(question).note}
+                                <p class="mt-2 text-xs font-bold text-slate-500">{reportTone(question).note}</p>
+                            {/if}
+                        </div>
                     </div>
 
                     <div class="grid gap-10 lg:grid-cols-2">
@@ -116,23 +152,29 @@
                                     </svg>
                                     Flag inappropriate response
                                 </summary>
-                                <form class="mt-6 space-y-5" method="POST" action="?/report" in:fade>
-                                    <input name="question_id" type="hidden" value={question.id} />
-                                    <label class="block">
-                                        <textarea 
-                                            class="w-full resize-none rounded-[1.5rem] border-slate-200 bg-white p-6 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10" 
-                                            name="reason" 
-                                            rows="4" 
-                                            placeholder="Briefly explain your concern..."
-                                            minlength="10" 
-                                            maxlength="255" 
-                                            required
-                                        ></textarea>
-                                    </label>
-                                    <button class="rounded-2xl bg-slate-900 px-8 py-3.5 text-[11px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-rose-600 hover:-translate-y-1 active:scale-95" type="submit">
-                                        Submit Report
-                                    </button>
-                                </form>
+                                {#if question.current_user_report_status === 'pending'}
+                                    <div class="mt-6 rounded-[1.5rem] bg-rose-50 p-5 text-sm font-bold text-rose-800 ring-1 ring-rose-200" in:fade>
+                                        You already submitted a report for this reply. It is still pending review.
+                                    </div>
+                                {:else}
+                                    <form class="mt-6 space-y-5" method="POST" action="?/report" in:fade>
+                                        <input name="question_id" type="hidden" value={question.id} />
+                                        <label class="block">
+                                            <textarea 
+                                                class="w-full resize-none rounded-[1.5rem] border-slate-200 bg-white p-6 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10" 
+                                                name="reason" 
+                                                rows="4" 
+                                                placeholder="Briefly explain your concern..."
+                                                minlength="10" 
+                                                maxlength="255" 
+                                                required
+                                            ></textarea>
+                                        </label>
+                                        <button class="rounded-2xl bg-slate-900 px-8 py-3.5 text-[11px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-rose-600 hover:-translate-y-1 active:scale-95" type="submit">
+                                            {question.current_user_report_status === 'dismissed' ? 'Submit Report Again' : 'Submit Report'}
+                                        </button>
+                                    </form>
+                                {/if}
                             </details>
                         </div>
                     {/if}

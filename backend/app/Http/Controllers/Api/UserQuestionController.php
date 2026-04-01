@@ -19,6 +19,20 @@ class UserQuestionController extends Controller
             ->latest()
             ->paginate(10);
 
+        $latestReportsByQuestion = Report::query()
+            ->where('reporter_id', $request->user()->id)
+            ->whereIn('question_id', collect($questions->items())->pluck('id'))
+            ->latest('created_at')
+            ->get()
+            ->unique('question_id')
+            ->keyBy('question_id');
+
+        collect($questions->items())->each(function (Question $question) use ($latestReportsByQuestion) {
+            $latestReport = $latestReportsByQuestion->get($question->id);
+            $question->is_reported_by_current_user = (bool) $latestReport;
+            $question->current_user_report_status = $latestReport?->status;
+        });
+
         return response()->json(ApiData::pagination($questions, fn (Question $question) => ApiData::question($question)));
     }
 

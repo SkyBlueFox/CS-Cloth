@@ -75,6 +75,7 @@ class ApiData
             'answer_text' => $question->answer_text,
             'score_cached' => (int) $question->score_cached,
             'is_reported_by_current_user' => (bool) ($question->is_reported_by_current_user ?? false),
+            'current_user_report_status' => $question->current_user_report_status ?? null,
             'item' => $question->relationLoaded('item') && $question->item ? self::item($question->item) : null,
             'asker' => $question->relationLoaded('asker') && $question->asker ? self::user($question->asker) : null,
             'created_at' => $question->created_at?->toIso8601String(),

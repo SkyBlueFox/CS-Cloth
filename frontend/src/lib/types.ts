@@ -76,6 +76,7 @@ export interface Question {
 	answer_text: string | null;
 	score_cached: number;
 	is_reported_by_current_user: boolean;
+	current_user_report_status: 'pending' | 'resolved' | 'dismissed' | null;
 	item: Item | null;
 	asker: User | null;
 	created_at: string | null;
