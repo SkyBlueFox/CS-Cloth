@@ -123,8 +123,8 @@ class DatabaseSeeder extends Seeder
             'status' => Report::STATUS_PENDING,
         ]);
 
-        $shirt = Item::updateOrCreate(['name' => 'KU CS T-Shirt'], [
-            'name' => 'KU CS T-Shirt',
+        $shirt = Item::updateOrCreate(['name' => 'XL KU CS T-Shirt'], [
+            'name' => 'XL KU CS T-Shirt',
             'created_by_id' => $admin1->id,
             'description' => 'Standard issue CS shirt. 100% Cotton.',
             'price' => 250.00,
@@ -133,8 +133,8 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $hoodie = Item::updateOrCreate(['name' => 'Tech Faculty Hoodie'], [
-            'name' => 'Tech Faculty Hoodie',
+        $hoodie = Item::updateOrCreate(['name' => 'XS Tech Faculty Hoodie'], [
+            'name' => 'XS Tech Faculty Hoodie',
             'created_by_id' => $admin1->id,
             'description' => 'Warm polyester hoodie for the cold labs.',
             'price' => 600.00,
