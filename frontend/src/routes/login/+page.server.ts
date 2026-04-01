@@ -13,6 +13,8 @@ export const actions = {
 	default: async (event) => {
 		const form = await event.request.formData();
 
+		let token: string;
+
 		try {
 			const response = await backend<{ data: { token: string } }>(event, '/auth/login', {
 				body: {
@@ -38,5 +40,8 @@ export const actions = {
 				email: String(form.get('email') ?? '')
 			});
 		}
+
+		setAuthToken(event.cookies, token);
+		throw redirect(303, '/');
 	}
 };

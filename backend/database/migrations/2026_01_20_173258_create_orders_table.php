@@ -12,14 +12,19 @@ return new class extends Migration {
 
             $table->foreignId('buyer_id')->constrained('users')->cascadeOnDelete();
 
-            // pending | shipped | refunding | refunded | cancelled
             $table->string('status', 20)->default('pending');
 
             $table->decimal('total_price', 10, 2);
 
+            $table->foreignId('shipping_address_id')
+                ->nullable()
+                ->constrained('user_addresses')
+                ->nullOnDelete();
+
             $table->text('shipping_address')->nullable();
 
-            // ฝั่ง Tan ใช้ approve ship/refund
+            $table->json('shipping_address_snapshot')->nullable();
+
             $table->foreignId('admin_shipped_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('admin_refunded_id')->nullable()->constrained('users')->nullOnDelete();
 

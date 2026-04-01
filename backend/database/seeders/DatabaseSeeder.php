@@ -20,18 +20,21 @@ class DatabaseSeeder extends Seeder
             'name' => 'Tan SuperAdmin',
             'password' => Hash::make('asd123'),
             'role' => User::ROLE_SUPERADMIN,
+            'email_verified_at' => now(),
         ]);
 
         $admin1 = User::updateOrCreate(['email' => 'admin@cloth.com'], [
             'name' => 'Admin 1',
             'password' => Hash::make('asd123'),
             'role' => User::ROLE_ADMIN,
+            'email_verified_at' => now(),
         ]);
 
         $customer1 = User::updateOrCreate(['email' => 'user@cloth.com'], [
             'name' => 'Test Customer 1',
             'password' => Hash::make('asd123'),
             'role' => User::ROLE_USER,
+            'email_verified_at' => now(),
         ]);
 
         $primaryAddress = UserAddress::updateOrCreate(
