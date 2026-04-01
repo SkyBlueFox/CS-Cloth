@@ -89,6 +89,24 @@
 				</div>
 			</header>
 
+			{#if data.viewerRole === 'user'}
+				<form class="mb-10 rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6 shadow-sm" method="POST" action="?/question">
+					<div class="flex items-center gap-3">
+						<span class="h-1.5 w-10 rounded-full bg-blue-600"></span>
+						<p class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">Ask A Question</p>
+					</div>
+					<p class="mt-3 text-sm font-bold uppercase tracking-wide text-slate-500">
+						Ask about sizing, material, stock, or anything else before you buy.
+					</p>
+					<textarea class="mt-5 w-full resize-none rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:border-blue-500 focus:ring-0" name="question_text" rows="4" placeholder="Ask something about this item..."></textarea>
+					<div class="mt-4 flex justify-end">
+						<button class="rounded-2xl bg-slate-900 px-6 py-3 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-600" type="submit">
+							Send Question
+						</button>
+					</div>
+				</form>
+			{/if}
+
 			{#if data.questions.length === 0}
 				<div class="flex flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50 py-16 text-center">
 					<p class="text-sm font-black uppercase tracking-widest text-slate-400">No active discussions</p>
@@ -116,9 +134,13 @@
 										</div>
 										{#if data.viewerRole === 'user'}
 											<button
-												class="text-white/50 transition-colors hover:text-white"
+												class={`transition-colors ${
+													question.is_reported_by_current_user
+														? 'cursor-not-allowed text-white/30'
+														: 'text-white/50 hover:text-white'
+												}`}
 												onclick={() => !question.is_reported_by_current_user && openReport(question.id)}
-												title="Report Answer"
+												title={question.is_reported_by_current_user ? 'You already reported this answer.' : 'Report Answer'}
 											>
 												<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 4v16M5 5h10l-2 4 2 4H5" /></svg>
 											</button>
@@ -292,12 +314,6 @@
 						Complete Purchase
 					</button>
 				</div>
-			</form>
-
-			<form class="rounded-[2.5rem] bg-white p-8 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100" method="POST" action="?/question">
-				<h3 class="text-lg font-black uppercase tracking-tight text-slate-900">Got Questions?</h3>
-				<textarea class="mt-6 w-full resize-none rounded-2xl border-slate-100 bg-slate-50 p-5 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:border-blue-500 focus:ring-0" name="question_text" rows="3" placeholder="Inquire about sizing, materials or restock..."></textarea>
-				<button class="mt-4 w-full rounded-xl py-3 text-xs font-black uppercase tracking-widest text-slate-400 transition-colors hover:text-blue-600">Send Inquiry</button>
 			</form>
 		{:else}
 			<div class="rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm">
