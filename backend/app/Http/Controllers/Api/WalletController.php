@@ -46,7 +46,7 @@ class WalletController extends Controller
     public function topUp(Request $request)
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:50', 'max:50000'],
+            'amount' => ['required', 'numeric', 'min:1', 'max:50000'],
             'provider' => ['required', 'string', 'in:' . implode(',', self::TOP_UP_PROVIDERS)],
             'cardholder_name' => ['nullable', 'string', 'max:255'],
             'card_number' => ['nullable', 'string', 'regex:/^[0-9 ]+$/', 'min:12', 'max:23'],
