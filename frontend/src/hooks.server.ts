@@ -7,12 +7,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.authToken = getAuthToken(event.cookies);
 	event.locals.user = null;
 
+	console.log('--- HOOK DEBUG ---');
+	console.log('Token from Cookie:', event.locals.authToken);
+
 	const publicPaths = ['/login', '/register'];
 
 	if (event.locals.authToken && !publicPaths.includes(event.url.pathname)) {
 		try {
-			const response = await backend(event, '/auth/me');
-			event.locals.user = (response as { user: User }).user;
+			const response = await backend<{ data: { user: User } }>(event, '/auth/me');
+
+			console.log('/auth/me response structure:', response);
+
+			event.locals.user = response.data.user;
+			console.log('User set to locals:', event.locals.user.name);
 		} catch (error) {
 			if (isApiError(error) && error.status === 401) {
 				clearAuthToken(event.cookies);

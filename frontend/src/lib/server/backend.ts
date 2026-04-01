@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/private';
 import type { RequestEvent } from '@sveltejs/kit';
 
 // 🔥 แก้ default ให้ตรงกับ Laravel Sail (port 80)
-const backendBase = env.BACKEND_URL ?? 'http://127.0.0.1';
+const backendBase = env.BACKEND_URL ?? 'http://laravel-api';
 
 export class ApiError extends Error {
 	status: number;
