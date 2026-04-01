@@ -63,11 +63,11 @@ body {
 }
 
 .sidebar-link {
-	@apply flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-sky-950 transition hover:bg-sky-100/80;
+	@apply flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-sky-950 transition hover:bg-sky-100/80 hover:text-sky-950;
 }
 
 .sidebar-link-active {
-	@apply border border-blue-900/10 bg-blue-700 text-white shadow-[0_16px_28px_-22px_rgba(29,78,216,0.5)];
+	@apply border border-blue-900/10 bg-blue-700 text-white shadow-[0_16px_28px_-22px_rgba(29,78,216,0.5)] hover:bg-blue-700 hover:text-white;
 }
 
 .sidebar-icon {
@@ -75,7 +75,7 @@ body {
 }
 
 .sidebar-icon-active {
-	@apply bg-white/15 text-white;
+	@apply bg-white/20 text-white;
 }
 
 /* ================== FORM ================== */

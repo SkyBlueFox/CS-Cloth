@@ -100,6 +100,12 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        if ($user->role === User::ROLE_ADMIN) {
+            return response()->json([
+                'message' => 'Admins cannot update their profile.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],

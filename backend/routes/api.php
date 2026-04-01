@@ -54,6 +54,7 @@ Route::middleware(['api.auth', 'role:user'])->group(function () {
 
     // Orders
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::patch('/orders/{order}/refund', [OrderController::class, 'requestRefund']);
@@ -75,6 +76,7 @@ Route::middleware(['api.auth', 'role:admin'])->prefix('admin')->group(function (
 
     // Orders
     Route::get('/orders', [AdminController::class, 'orders']);
+    Route::get('/orders/{order}', [AdminController::class, 'showAdminOrder']);
     Route::patch('/orders/{order}/ship', [AdminController::class, 'ship']);
     Route::patch('/orders/{order}/approve-refund', [AdminController::class, 'approveRefund']);
 

@@ -19,7 +19,14 @@ export const load = async (event) => {
 
 export const actions = {
 	updateProfile: async (event) => {
-		requireUser(event);
+		const user = requireUser(event);
+
+		if (user.role === 'admin') {
+			return fail(403, {
+				error: 'Admins cannot update their profile.'
+			});
+		}
+
 		const form = await event.request.formData();
 
 		try {

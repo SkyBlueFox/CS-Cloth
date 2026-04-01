@@ -9,6 +9,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Models\UserAddress;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 
 class ApiData
 {
@@ -53,7 +54,7 @@ class ApiData
             'price' => (float) $item->price,
             'stock' => (int) $item->stock,
             'image_path' => $item->image_path,
-            'image_url' => $item->image_path ? url('/storage/'.$item->image_path) : null,
+            'image_url' => $item->image_path ? Storage::disk('public')->url($item->image_path) : null,
             'is_active' => (bool) $item->is_active,
             'created_at' => $item->created_at?->toIso8601String(),
             'updated_at' => $item->updated_at?->toIso8601String(),
@@ -101,6 +102,7 @@ class ApiData
     {
         return [
             'id' => $order->id,
+            'order_number' => $order->order_number,
             'buyer_id' => $order->buyer_id,
             'status' => $order->status,
             'total_price' => (float) $order->total_price,
@@ -115,6 +117,16 @@ class ApiData
                     'item_id' => $orderItem->item_id,
                     'quantity' => (int) $orderItem->quantity,
                     'price_at_purchase' => (float) $orderItem->price_at_purchase,
+                    'refund_requested_quantity' => (int) ($orderItem->refund_requested_quantity ?? 0),
+                    'refunded_quantity' => (int) ($orderItem->refunded_quantity ?? 0),
+                    'refundable_quantity' => max(0, (int) $orderItem->quantity - (int) ($orderItem->refunded_quantity ?? 0) - (int) ($orderItem->refund_requested_quantity ?? 0)),
+                    'refund_reason_code' => $orderItem->refund_reason_code,
+                    'refund_reason_detail' => $orderItem->refund_reason_detail,
+                    'refund_issue_description' => $orderItem->refund_issue_description,
+                    'refund_evidence_image_path' => $orderItem->refund_evidence_image_path,
+                    'refund_evidence_image_url' => $orderItem->refund_evidence_image_path ? Storage::disk('public')->url($orderItem->refund_evidence_image_path) : null,
+                    'refund_requested_at' => $orderItem->refund_requested_at?->toIso8601String(),
+                    'refund_approved_at' => $orderItem->refund_approved_at?->toIso8601String(),
                     'item' => $orderItem->relationLoaded('item') && $orderItem->item ? self::item($orderItem->item) : null,
                 ])->values()->all()
                 : [],
@@ -123,7 +135,45 @@ class ApiData
             'refund_requested_at' => $order->refund_requested_at?->toIso8601String(),
             'refunded_at' => $order->refunded_at?->toIso8601String(),
             'created_at' => $order->created_at?->toIso8601String(),
+            'updated_at' => $order->updated_at?->toIso8601String(),
+            'status_history' => self::orderStatusHistory($order),
         ];
+    }
+
+    public static function orderStatusHistory(Order $order): array
+    {
+        return collect([
+            [
+                'key' => 'placed',
+                'label' => 'Order placed',
+                'status' => 'pending',
+                'timestamp' => $order->created_at?->toIso8601String(),
+            ],
+            [
+                'key' => 'shipped',
+                'label' => 'Order shipped',
+                'status' => 'shipped',
+                'timestamp' => $order->shipped_at?->toIso8601String(),
+            ],
+            [
+                'key' => 'refund_requested',
+                'label' => 'Refund requested',
+                'status' => 'refunding',
+                'timestamp' => $order->refund_requested_at?->toIso8601String(),
+            ],
+            [
+                'key' => 'refunded',
+                'label' => 'Refund approved',
+                'status' => 'refunded',
+                'timestamp' => $order->refunded_at?->toIso8601String(),
+            ],
+            [
+                'key' => 'cancelled',
+                'label' => 'Order cancelled',
+                'status' => 'cancelled',
+                'timestamp' => $order->cancelled_at?->toIso8601String(),
+            ],
+        ])->filter(fn (array $event) => !empty($event['timestamp']))->values()->all();
     }
 
     public static function pagination(LengthAwarePaginator $paginator, callable $map): array

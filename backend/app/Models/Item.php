@@ -24,6 +24,18 @@ class Item extends Model
         'price' => 'decimal:2',
     ];
 
+    protected $appends = ['image_url'];
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image_path) {
+            return null;
+        }
+
+        // This forces the URL to use the APP_URL from .env
+        // rather than the internal Docker hostname
+        return asset('storage/' . $this->image_path);
+    }
+
     public function questions()
     {
         return $this->hasMany(\App\Models\Question::class, 'item_id');

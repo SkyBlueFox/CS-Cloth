@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { itemImageSrc } from '$lib/media';
 	let { data, form } = $props();
 </script>
 
@@ -19,7 +20,7 @@
 			{#each data.cart as item (item.id)}
 				<div class="panel flex justify-between items-center gap-4">
 					<div class="flex gap-4">
-						<img class="h-24 w-24 rounded-xl object-cover" src={item.image_url} alt={item.name} />
+						<img class="h-24 w-24 rounded-xl object-cover" src={itemImageSrc(item) ?? undefined} alt={item.name} />
 						<div>
 							<h2 class="font-semibold">{item.name}</h2>
 							<p class="text-sm text-slate-500">฿{item.price.toFixed(2)}</p>

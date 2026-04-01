@@ -69,17 +69,14 @@
 
 					<nav class="flex-1 space-y-2 px-4 py-5">
 						{#each visibleNav as item (item.href)}
+							{@const isActive = $page.url.pathname.startsWith(item.href)}
 							<a
-								class={`sidebar-link ${
-									$page.url.pathname.startsWith(item.href) ? 'sidebar-link-active' : ''
-								}`}
+								aria-current={isActive ? 'page' : undefined}
+								class={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
 								href={item.href}
 								title={item.label}
 							>
-								<SidebarIcon
-									active={$page.url.pathname.startsWith(item.href)}
-									name={item.icon}
-								/>
+								<SidebarIcon active={isActive} name={item.icon} />
 								<span>{item.label}</span>
 							</a>
 						{/each}

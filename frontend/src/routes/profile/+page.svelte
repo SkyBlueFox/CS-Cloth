@@ -1,5 +1,6 @@
 <script lang="ts">
 	let { data, form } = $props();
+	const profileLocked = $derived(data.user?.role === 'admin');
 </script>
 
 <section class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
@@ -8,6 +9,11 @@
 			<p class="eyebrow">Profile</p>
 			<h1 class="mt-2 text-3xl font-semibold">Update your account</h1>
 		</div>
+		{#if profileLocked}
+			<p class="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-600">
+				Admin accounts are locked. Contact a superadmin if your profile information needs to change.
+			</p>
+		{/if}
 		{#if form?.error}
 			<p class="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{form.error}</p>
 		{/if}
@@ -16,25 +22,60 @@
 		{/if}
 		<label class="block">
 			<span class="mb-1 block text-sm font-medium">Name</span>
-			<input class="w-full rounded-2xl border-slate-300" name="name" value={data.user?.name ?? ''} required />
+			<input
+				class={`w-full rounded-2xl ${profileLocked ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'}`}
+				disabled={profileLocked}
+				name="name"
+				readonly={profileLocked}
+				value={data.user?.name ?? ''}
+				required
+			/>
 		</label>
 		<label class="block">
 			<span class="mb-1 block text-sm font-medium">Email</span>
-			<input class="w-full rounded-2xl border-slate-300" name="email" type="email" value={data.user?.email ?? ''} required />
+			<input
+				class={`w-full rounded-2xl ${profileLocked ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'}`}
+				disabled={profileLocked}
+				name="email"
+				readonly={profileLocked}
+				type="email"
+				value={data.user?.email ?? ''}
+				required
+			/>
 		</label>
 		<label class="block">
 			<span class="mb-1 block text-sm font-medium">Phone</span>
-			<input class="w-full rounded-2xl border-slate-300" name="phone" value={data.user?.phone ?? ''} />
+			<input
+				class={`w-full rounded-2xl ${profileLocked ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'}`}
+				disabled={profileLocked}
+				name="phone"
+				readonly={profileLocked}
+				value={data.user?.phone ?? ''}
+			/>
 		</label>
 		<label class="block">
 			<span class="mb-1 block text-sm font-medium">New password</span>
-			<input class="w-full rounded-2xl border-slate-300" name="password" type="password" />
+			<input
+				class={`w-full rounded-2xl ${profileLocked ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'}`}
+				disabled={profileLocked}
+				name="password"
+				readonly={profileLocked}
+				type="password"
+			/>
 		</label>
 		<label class="block">
 			<span class="mb-1 block text-sm font-medium">Confirm new password</span>
-			<input class="w-full rounded-2xl border-slate-300" name="password_confirmation" type="password" />
+			<input
+				class={`w-full rounded-2xl ${profileLocked ? 'border-slate-200 bg-slate-100 text-slate-500' : 'border-slate-300'}`}
+				disabled={profileLocked}
+				name="password_confirmation"
+				readonly={profileLocked}
+				type="password"
+			/>
 		</label>
-		<button class="btn-primary" type="submit">Save changes</button>
+		<button class={`btn-primary ${profileLocked ? 'cursor-not-allowed border-slate-200 bg-slate-300 text-slate-600 shadow-none hover:bg-slate-300' : ''}`} disabled={profileLocked} type="submit">
+			Save changes
+		</button>
 	</form>
 
 	{#if data.user?.role === 'user'}

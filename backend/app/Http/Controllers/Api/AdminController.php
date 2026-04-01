@@ -14,9 +14,32 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
-    public function items()
+    public function items(Request $request)
     {
-        $items = Item::query()->latest()->paginate(20);
+        $search = trim((string) $request->query('search', ''));
+        $sort = (string) $request->query('sort', 'newest');
+
+        $items = Item::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            });
+
+        match ($sort) {
+            'oldest' => $items->oldest(),
+            'name_asc' => $items->orderBy('name'),
+            'name_desc' => $items->orderByDesc('name'),
+            'price_low' => $items->orderBy('price'),
+            'price_high' => $items->orderByDesc('price'),
+            'stock_low' => $items->orderBy('stock'),
+            'stock_high' => $items->orderByDesc('stock'),
+            default => $items->latest(),
+        };
+
+        $items = $items->paginate(20);
 
         return response()->json(ApiData::pagination($items, fn (Item $item) => ApiData::item($item)));
     }
@@ -101,11 +124,66 @@ class AdminController extends Controller
         return response()->json(['item' => ApiData::item($item->fresh())]);
     }
 
-    public function orders()
+    public function orders(Request $request)
     {
-        $orders = Order::query()->with(['buyer', 'items.item'])->latest()->paginate(20);
+        $search = trim((string) $request->query('search', ''));
+        $sort = (string) $request->query('sort', 'newest');
+        $queue = (string) $request->query('queue', 'shipping');
+        $refundReasons = collect(explode(',', (string) $request->query('refund_reasons', '')))
+            ->map(fn (string $reason) => trim($reason))
+            ->filter()
+            ->values();
+
+        $orders = Order::query()
+            ->with(['buyer', 'items.item'])
+            ->when($queue === 'shipping', function ($query) {
+                $query->where('status', 'pending');
+            })
+            ->when($queue === 'refund', function ($query) use ($refundReasons) {
+                $query->whereIn('status', ['refunding', 'partially_refunded'])
+                    ->whereHas('items', function ($itemQuery) use ($refundReasons) {
+                        $itemQuery->where('refund_requested_quantity', '>', 0);
+
+                        if ($refundReasons->isNotEmpty()) {
+                            $itemQuery->whereIn('refund_reason_code', $refundReasons->all());
+                        }
+                    });
+            })
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('order_number', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhereHas('buyer', function ($buyerQuery) use ($search) {
+                            $buyerQuery
+                                ->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('items.item', function ($itemQuery) use ($search) {
+                            $itemQuery->where('name', 'like', "%{$search}%");
+                        });
+                });
+            });
+
+        match ($sort) {
+            'oldest' => $orders->oldest(),
+            'total_low' => $orders->orderBy('total_price'),
+            'total_high' => $orders->orderByDesc('total_price'),
+            default => $orders->latest(),
+        };
+
+        $orders = $orders->paginate(20);
 
         return response()->json(ApiData::pagination($orders, fn (Order $order) => ApiData::order($order)));
+    }
+
+    public function showAdminOrder(Order $order)
+    {
+        $order->load(['buyer', 'items.item', 'shippingAddress']);
+
+        return response()->json([
+            'order' => ApiData::order($order),
+        ]);
     }
 
     public function ship(Order $order)
@@ -122,30 +200,52 @@ class AdminController extends Controller
         return response()->json(['message' => 'Order marked as shipped.']);
     }
 
-    public function approveRefund(Order $order)
+    public function approveRefund(Request $request, Order $order)
     {
-        if ($order->status !== 'refunding') {
+        if (!in_array($order->status, ['refunding', 'partially_refunded'], true)) {
             return response()->json(['message' => 'Order is not in a refundable state.'], 422);
         }
 
-        DB::transaction(function () use ($order) {
-            $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->first();
+        $validated = $request->validate([
+            'order_item_id' => ['required', 'integer'],
+        ]);
+
+        DB::transaction(function () use ($order, $validated, $request) {
+            $lockedOrder = Order::query()->whereKey($order->id)->with('items')->lockForUpdate()->first();
             $buyer = User::query()->whereKey($order->buyer_id)->lockForUpdate()->first();
 
-            $lockedOrder->update([
-                'status' => 'refunded',
-                'refunded_at' => now(),
+            $orderItem = $lockedOrder->items->firstWhere('id', (int) $validated['order_item_id']);
+            abort_unless($orderItem, 404, 'Order item not found.');
+            abort_unless($orderItem->refund_requested_quantity > 0, 422, 'This order item has no pending refund request.');
+
+            $refundQty = $orderItem->refund_requested_quantity;
+            $refundTotal = $refundQty * $orderItem->price_at_purchase;
+
+            $orderItem->update([
+                'refunded_quantity' => $orderItem->refunded_quantity + $refundQty,
+                'refund_requested_quantity' => 0,
+                'refund_approved_at' => now(),
             ]);
 
-            $buyer->increment('balance', $lockedOrder->total_price);
+            Item::query()->whereKey($orderItem->item_id)->increment('stock', $refundQty);
 
-            $lockedOrder->load('items');
-            foreach ($lockedOrder->items as $orderItem) {
-                Item::query()->whereKey($orderItem->item_id)->increment('stock', $orderItem->quantity);
-            }
+            $hasPendingRefunds = $lockedOrder->items->contains(fn ($line) => $line->id !== $orderItem->id && $line->refund_requested_quantity > 0);
+            $allItemsRefunded = $lockedOrder->items->every(function ($line) use ($orderItem, $refundQty) {
+                $effectiveRefunded = $line->refunded_quantity + ($line->id === $orderItem->id ? $refundQty : 0);
+
+                return $effectiveRefunded >= $line->quantity;
+            });
+
+            $lockedOrder->update([
+                'status' => $hasPendingRefunds ? 'refunding' : ($allItemsRefunded ? 'refunded' : 'partially_refunded'),
+                'refunded_at' => now(),
+                'admin_refunded_id' => $request->user()->id,
+            ]);
+
+            $buyer->increment('balance', $refundTotal);
         });
 
-        return response()->json(['message' => 'Refund approved.']);
+        return response()->json(['message' => 'Refund approved for the selected item request.']);
     }
 
     public function questions(Request $request)

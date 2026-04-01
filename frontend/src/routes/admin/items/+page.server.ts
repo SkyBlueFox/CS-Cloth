@@ -6,10 +6,25 @@ import type { Item, Paginated } from '$lib/types';
 export const load = async (event) => {
 	requireUser(event, ['admin']);
 	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const items = await backend<Paginated<Item>>(event, `/admin/items?page=${page}`);
+	const search = event.url.searchParams.get('search')?.trim() ?? '';
+	const sort = event.url.searchParams.get('sort')?.trim() ?? 'newest';
+	const params = new URLSearchParams({
+		page: String(page),
+		sort
+	});
+
+	if (search) {
+		params.set('search', search);
+	}
+
+	const items = await backend<Paginated<Item>>(event, `/admin/items?${params.toString()}`);
 
 	return {
-		items
+		items,
+		filters: {
+			search,
+			sort
+		}
 	};
 };
 

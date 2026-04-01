@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { itemImageSrc } from '$lib/media';
 	let { data, form } = $props();
 	let selectedAddressId = $state('__init__');
 	let reportQuestionId = $state<number | null>(null);
@@ -25,10 +26,10 @@
 	<!-- Item details and questions -->
 	<div class="space-y-8">
 		<div class="panel">
-			{#if data.item.image_url}
+			{#if itemImageSrc(data.item)}
 				<img
 					class="mb-6 h-[26rem] w-full rounded-[1.8rem] object-cover"
-					src={data.item.image_url}
+					src={itemImageSrc(data.item) ?? undefined}
 					alt={data.item.name}
 				/>
 			{/if}

@@ -87,11 +87,29 @@ export interface OrderLine {
 	item_id: number;
 	quantity: number;
 	price_at_purchase: number;
+	refund_requested_quantity: number;
+	refunded_quantity: number;
+	refundable_quantity: number;
+	refund_reason_code: string | null;
+	refund_reason_detail: string | null;
+	refund_issue_description: string | null;
+	refund_evidence_image_path: string | null;
+	refund_evidence_image_url: string | null;
+	refund_requested_at: string | null;
+	refund_approved_at: string | null;
 	item: Item | null;
+}
+
+export interface OrderStatusEvent {
+	key: string;
+	label: string;
+	status: string;
+	timestamp: string;
 }
 
 export interface Order {
 	id: number;
+	order_number: string;
 	buyer_id: number;
 	status: string;
 	total_price: number;
@@ -106,6 +124,8 @@ export interface Order {
 	refund_requested_at: string | null;
 	refunded_at: string | null;
 	created_at: string | null;
+	updated_at: string | null;
+	status_history: OrderStatusEvent[];
 }
 
 export interface CartItem extends Item {
