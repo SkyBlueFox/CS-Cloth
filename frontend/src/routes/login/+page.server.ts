@@ -1,4 +1,3 @@
-import { fail, redirect } from '@sveltejs/kit';
 import { backend, getErrorMessage } from '$lib/server/backend';
 import { landingFor } from '$lib/server/auth';
 import { setAuthToken } from '$lib/server/session';

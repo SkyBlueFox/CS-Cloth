@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { itemImageSrc } from '$lib/media';
 	import Pagination from '$lib/components/Pagination.svelte';
 
 	let { data, form } = $props();
@@ -23,8 +24,8 @@
 	<div class="grid gap-5">
 		{#each data.items.data as item}
 			<article class="panel flex flex-col gap-5 lg:flex-row lg:items-center">
-				{#if item.image_url}
-					<img class="h-28 w-28 rounded-[1.5rem] object-cover" src={item.image_url} alt={item.name} />
+				{#if itemImageSrc(item)}
+					<img class="h-28 w-28 rounded-[1.5rem] object-cover" src={itemImageSrc(item) ?? undefined} alt={item.name} />
 				{:else}
 					<div class="subtle-box flex h-28 w-28 items-center justify-center text-sm text-sky-500">No image</div>
 				{/if}

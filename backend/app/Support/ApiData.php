@@ -9,6 +9,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Models\UserAddress;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 
 class ApiData
 {
@@ -53,7 +54,7 @@ class ApiData
             'price' => (float) $item->price,
             'stock' => (int) $item->stock,
             'image_path' => $item->image_path,
-            'image_url' => $item->image_path ? url('/storage/'.$item->image_path) : null,
+            'image_url' => $item->image_path ? Storage::disk('public')->url($item->image_path) : null,
             'is_active' => (bool) $item->is_active,
             'created_at' => $item->created_at?->toIso8601String(),
             'updated_at' => $item->updated_at?->toIso8601String(),
