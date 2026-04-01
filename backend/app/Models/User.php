@@ -63,8 +63,6 @@ class User extends Authenticatable
     {
         $this->attributes['balance'] = $value;
     }
-}
-
 
     public function reports(): HasMany
     {

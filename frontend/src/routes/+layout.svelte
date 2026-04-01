@@ -22,18 +22,6 @@
         icon: IconName;
     };
 
-    const nav: NavItem[] = [
-        { href: '/shop', label: 'Shop', roles: ['user'], icon: 'shop' as IconName },
-        { href: '/orders', label: 'My Orders', roles: ['user'], icon: 'orders' as IconName },
-        { href: '/questions', label: 'My Questions', roles: ['user'], icon: 'questions' as IconName },
-        { href: '/admin/orders', label: 'Manage Orders', roles: ['admin'], icon: 'orders' as IconName },
-        { href: '/admin/items', label: 'Manage Items', roles: ['admin'], icon: 'items' as IconName },
-        { href: '/admin/questions', label: 'Pending Questions', roles: ['admin'], icon: 'questions' as IconName },
-        { href: '/superadmin/admins', label: 'Manage Admins', roles: ['superadmin'], icon: 'admins' as IconName },
-        { href: '/superadmin/users', label: 'Manage Users', roles: ['superadmin'], icon: 'users' as IconName },
-        { href: '/superadmin/reports', label: 'Manage Reports', roles: ['superadmin'], icon: 'reports' as IconName },
-        { href: '/profile', label: 'Profile', roles: ['user', 'admin', 'superadmin'], icon: 'profile' as IconName }
-    ];
 	const nav: NavItem[] = [
 		{ href: '/shop', label: 'Shop', roles: ['user'], icon: 'shop' as IconName },
 		{ href: '/orders', label: 'My Orders', roles: ['user'], icon: 'orders' as IconName },

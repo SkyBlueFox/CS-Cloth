@@ -13,9 +13,6 @@
 		| 'reports'
 		| 'profile'
 		| 'logout';
-    export type IconName =
-        | 'dashboard' | 'shop' | 'orders' | 'questions' | 'items'
-        | 'admins' | 'users' | 'reports' | 'profile' | 'logout';
 </script>
 
 <span class={`sidebar-icon ${active ? 'sidebar-icon-active' : ''}`}>
@@ -72,6 +69,7 @@
 			<path d="M21 21V3" />
 		{/if}
 	</svg>
+</span>
 <span class={`flex h-6 w-6 shrink-0 items-center justify-center transition-transform duration-300 ease-out ${active ? 'scale-105' : 'scale-100'}`}>
     <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width={active ? "2" : "1.5"} viewBox="0 0 24 24">
         {#if name === 'dashboard'}
