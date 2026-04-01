@@ -93,6 +93,7 @@ export interface Report {
 	answer_text_snapshot: string;
 	reason: string;
 	status: string;
+	item: Item | null;
 	created_at: string | null;
 }
 

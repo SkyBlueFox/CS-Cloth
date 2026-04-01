@@ -95,6 +95,12 @@ class ApiData
             'answer_text_snapshot' => $report->answer_text_snapshot,
             'reason' => $report->reason,
             'status' => $report->status,
+            'item' => $report->relationLoaded('question')
+                && $report->question
+                && $report->question->relationLoaded('item')
+                && $report->question->item
+                    ? self::item($report->question->item)
+                    : null,
             'created_at' => $report->created_at?->toIso8601String(),
         ];
     }

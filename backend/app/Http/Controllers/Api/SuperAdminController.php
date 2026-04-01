@@ -177,7 +177,10 @@ class SuperAdminController extends Controller
 
     public function reports()
     {
-        $reports = Report::query()->latest()->paginate(20);
+        $reports = Report::query()
+            ->with(['question.item'])
+            ->latest()
+            ->paginate(20);
 
         return response()->json(ApiData::pagination($reports, fn (Report $report) => ApiData::report($report)));
     }

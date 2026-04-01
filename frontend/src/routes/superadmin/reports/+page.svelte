@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Pagination from '$lib/components/Pagination.svelte';
+	import { itemImageSrc } from '$lib/media';
 
 	let { data, form } = $props();
 	let searchQuery = $state('');
@@ -136,6 +137,21 @@
 								</form>
 							</div>
 						</div>
+						{#if report.item}
+							<div class="flex items-center gap-4 rounded-[1.25rem] bg-slate-50 p-4">
+								{#if itemImageSrc(report.item)}
+									<img
+										alt={report.item.name}
+										class="h-20 w-20 rounded-[1rem] object-cover"
+										src={itemImageSrc(report.item) ?? undefined}
+									/>
+								{/if}
+								<div>
+									<p class="text-sm font-medium text-slate-600">Item</p>
+									<p class="mt-1 font-semibold text-slate-900">{report.item.name}</p>
+								</div>
+							</div>
+						{/if}
 						<div class="rounded-[1.25rem] bg-sky-50 p-4">
 							<p class="text-sm font-medium text-slate-600">Question</p>
 							<p class="mt-2">{report.question_text_snapshot}</p>
@@ -177,6 +193,21 @@
 							</div>
 							<p class="text-sm text-slate-600">{report.reporter_name} → {report.admin_name}</p>
 							<p class="text-xs text-slate-500">Submitted {formatReportDate(report.created_at)}</p>
+							{#if report.item}
+								<div class="flex items-center gap-3 rounded-[1rem] bg-white/70 p-3">
+									{#if itemImageSrc(report.item)}
+										<img
+											alt={report.item.name}
+											class="h-14 w-14 rounded-[0.9rem] object-cover"
+											src={itemImageSrc(report.item) ?? undefined}
+										/>
+									{/if}
+									<div>
+										<p class="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Item</p>
+										<p class="text-sm font-medium text-slate-900">{report.item.name}</p>
+									</div>
+								</div>
+							{/if}
 							<p class="text-sm text-slate-700"><span class="font-medium">Question:</span> {report.question_text_snapshot}</p>
 							<p class="text-sm text-slate-700"><span class="font-medium">Reason:</span> {report.reason}</p>
 						</article>
@@ -207,6 +238,21 @@
 							</div>
 							<p class="text-sm text-slate-600">{report.reporter_name} → {report.admin_name}</p>
 							<p class="text-xs text-slate-500">Submitted {formatReportDate(report.created_at)}</p>
+							{#if report.item}
+								<div class="flex items-center gap-3 rounded-[1rem] bg-white/80 p-3">
+									{#if itemImageSrc(report.item)}
+										<img
+											alt={report.item.name}
+											class="h-14 w-14 rounded-[0.9rem] object-cover"
+											src={itemImageSrc(report.item) ?? undefined}
+										/>
+									{/if}
+									<div>
+										<p class="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Item</p>
+										<p class="text-sm font-medium text-slate-900">{report.item.name}</p>
+									</div>
+								</div>
+							{/if}
 							<p class="text-sm text-slate-700"><span class="font-medium">Question:</span> {report.question_text_snapshot}</p>
 							<p class="text-sm text-slate-700"><span class="font-medium">Reason:</span> {report.reason}</p>
 						</article>
