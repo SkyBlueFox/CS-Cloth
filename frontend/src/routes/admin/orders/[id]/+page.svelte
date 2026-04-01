@@ -76,7 +76,7 @@
 			<div class="space-y-4">
 				{#each data.order.items as line (line.id)}
 					<div class="rounded-[1.5rem] border border-slate-200 p-4">
-						<div class="flex items-start gap-4">
+						<a class="flex items-start gap-4 rounded-[1rem] transition hover:bg-slate-50" href={`/items/${line.item_id}`}>
 							{#if line.item && itemImageSrc(line.item)}
 								<img
 									alt={line.item.name}
@@ -87,7 +87,7 @@
 								<div class="subtle-box flex h-24 w-24 items-center justify-center text-xs text-sky-500">No image</div>
 							{/if}
 							<div class="space-y-1">
-								<p class="text-lg font-semibold text-slate-900">{line.item?.name ?? `Item #${line.item_id}`}</p>
+								<p class="text-lg font-semibold text-slate-900 transition-colors hover:text-blue-700">{line.item?.name ?? `Item #${line.item_id}`}</p>
 								<p class="text-sm text-slate-500">{line.quantity} × ฿{line.price_at_purchase.toFixed(2)}</p>
 								{#if line.refunded_quantity > 0}
 									<p class="text-sm font-medium text-emerald-700">Already refunded: {line.refunded_quantity}</p>
@@ -96,7 +96,7 @@
 									<p class="text-sm text-slate-500">Still refundable: {line.refundable_quantity}</p>
 								{/if}
 							</div>
-						</div>
+						</a>
 
 						{#if line.refund_requested_quantity > 0}
 							<div class="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50/70 p-4">

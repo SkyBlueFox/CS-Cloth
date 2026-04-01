@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
         $item1 = Item::updateOrCreate(['name' => 'Fresh Apple'], [
             'name' => 'Fresh Apple',
             'created_by_id' => $admin1->id,
-            'description' => 'It is very fresh and sweet',
+            'description' => 'It is very fresh and sweet (Apple replica. Please do not eat)',
             'price' => 40.00,
             'image_path' => "items/apple.jpg",
             'stock' => 100,

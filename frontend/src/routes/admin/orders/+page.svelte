@@ -191,7 +191,7 @@
 							<div class="rounded-[1.25rem] border border-slate-200 p-4">
 								<div class="flex flex-wrap items-start justify-between gap-3">
 									<div>
-										<div class="flex items-center gap-4">
+										<a class="flex items-center gap-4 rounded-[1rem] transition hover:bg-slate-50" href={`/items/${line.item_id}`}>
 											{#if line.item && itemImageSrc(line.item)}
 												<img
 													alt={line.item.name}
@@ -202,10 +202,10 @@
 												<div class="subtle-box flex h-20 w-20 items-center justify-center text-xs text-sky-500">No image</div>
 											{/if}
 											<div>
-												<p class="font-medium">{line.item?.name ?? `Item #${line.item_id}`}</p>
+												<p class="font-medium transition-colors hover:text-blue-700">{line.item?.name ?? `Item #${line.item_id}`}</p>
 												<p class="text-sm text-slate-500">{line.quantity} × ฿{line.price_at_purchase.toFixed(2)}</p>
 											</div>
-										</div>
+										</a>
 									</div>
 									<div class="text-right text-xs">
 										{#if line.refunded_quantity > 0}

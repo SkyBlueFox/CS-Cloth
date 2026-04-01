@@ -1,4 +1,3 @@
-import { landingFor } from '$lib/server/auth';
 import { clearAuthToken, getAuthToken } from '$lib/server/session';
 import { backend, isApiError } from '$lib/server/backend';
 import { redirect, type Handle } from '@sveltejs/kit';
@@ -34,18 +33,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// 🔐 auth guard
 	const protectedPaths = ['/cart', '/checkout', '/orders', '/profile', '/wallet', '/questions'];
-	const userOnlyPaths = ['/items', '/cart', '/checkout', '/orders', '/wallet', '/questions'];
 
 	if (!event.locals.user && protectedPaths.some(p => event.url.pathname.startsWith(p))) {
 		throw redirect(303, '/login');
-	}
-
-	if (
-		event.locals.user &&
-		event.locals.user.role !== 'user' &&
-		userOnlyPaths.some((p) => event.url.pathname.startsWith(p))
-	) {
-		throw redirect(303, landingFor(event.locals.user));
 	}
 
 	// 🔐 role guard

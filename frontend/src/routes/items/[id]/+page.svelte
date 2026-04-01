@@ -316,18 +316,46 @@
 				</div>
 			</form>
 		{:else}
-			<div class="rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm">
-				<h2 class="text-2xl font-black tracking-tight text-slate-900">
-					{data.viewerRole ? 'Storefront unavailable for this account' : 'Sign in to purchase'}
-				</h2>
-				<p class="mt-3 text-sm font-bold uppercase tracking-wide text-slate-500">
-					{data.viewerRole
-						? 'Admin and superadmin accounts cannot place customer orders or manage shipping addresses here.'
-						: 'Customer checkout, address entry, and questions are only available after logging in to a user account.'}
-				</p>
-				<a class="mt-6 inline-flex rounded-2xl bg-slate-900 px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-600" href={data.viewerRole ? '/' : '/login'}>
-					{data.viewerRole ? 'Back to dashboard' : 'Login'}
-				</a>
+			<div class="space-y-6">
+				<div class="rounded-[3rem] border border-slate-200 bg-slate-100/80 p-8 opacity-70 shadow-sm sm:p-10">
+					<header class="mb-8 border-b border-slate-200 pb-8">
+						<div class="flex items-center gap-3">
+							<span class="h-1.5 w-10 rounded-full bg-slate-400"></span>
+							<p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Checkout</p>
+						</div>
+						<h2 class="mt-4 text-3xl font-black tracking-tight text-slate-700">Order This Item</h2>
+						<p class="mt-3 text-sm font-bold uppercase tracking-wide text-slate-500">
+							{data.viewerRole
+								? 'Browsing only. Ordering and address management are disabled for this account.'
+								: 'Sign in with a customer account to order this item.'}
+						</p>
+					</header>
+					<div class="space-y-6">
+						<input class="w-full cursor-not-allowed rounded-2xl border border-slate-300 bg-white px-6 py-4 text-lg font-black text-slate-400" type="text" value="Quantity and delivery options are disabled" disabled />
+						<button class="w-full cursor-not-allowed rounded-2xl bg-slate-300 py-5 text-sm font-black uppercase tracking-[0.25em] text-white" type="button" disabled>
+							Complete Purchase
+						</button>
+					</div>
+				</div>
+
+				<div class="rounded-[2.5rem] border border-slate-200 bg-slate-100/80 p-8 opacity-70 shadow-sm">
+					<h3 class="text-lg font-black uppercase tracking-tight text-slate-700">Ask A Question</h3>
+					<p class="mt-3 text-sm font-bold uppercase tracking-wide text-slate-500">
+						{data.viewerRole
+							? 'Question submission is disabled for admin and superadmin accounts.'
+							: 'Sign in with a customer account to ask a question.'}
+					</p>
+					<textarea class="mt-6 w-full cursor-not-allowed resize-none rounded-2xl border border-slate-300 bg-white p-5 text-sm font-bold text-slate-400" rows="3" disabled placeholder="Question form disabled"></textarea>
+					<button class="mt-4 w-full cursor-not-allowed rounded-xl bg-slate-300 py-3 text-xs font-black uppercase tracking-widest text-white" type="button" disabled>
+						Send Inquiry
+					</button>
+				</div>
+
+				{#if !data.viewerRole}
+					<a class="inline-flex rounded-2xl bg-slate-900 px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-600" href="/login">
+						Login
+					</a>
+				{/if}
 			</div>
 		{/if}
 	</div>

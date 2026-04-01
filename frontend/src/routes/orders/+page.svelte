@@ -99,17 +99,17 @@
 
                     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {#each order.items as line (line.id)}
-                            <div class="flex items-center gap-4 rounded-2xl bg-slate-50/50 p-4 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-md">
+                            <a class="flex items-center gap-4 rounded-2xl bg-slate-50/50 p-4 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-md hover:ring-blue-200" href={`/items/${line.item_id}`}>
                                 <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
                                     {#if line.item}
                                         <img alt="" class="h-full w-full object-cover" src={itemImageSrc(line.item)} />
                                     {/if}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="truncate text-sm font-black text-slate-900 tracking-tight">{line.item?.name}</p>
+                                    <p class="truncate text-sm font-black text-slate-900 tracking-tight hover:text-blue-700">{line.item?.name}</p>
                                     <p class="text-[11px] font-bold text-slate-500 uppercase">Qty: {line.quantity}</p>
                                 </div>
-                            </div>
+                            </a>
                         {/each}
                     </div>
                 </div>

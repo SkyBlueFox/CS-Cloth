@@ -138,7 +138,7 @@
 							</div>
 						</div>
 						{#if report.item}
-							<div class="flex items-center gap-4 rounded-[1.25rem] bg-slate-50 p-4">
+							<a class="flex items-center gap-4 rounded-[1.25rem] bg-slate-50 p-4 transition hover:bg-white hover:ring-1 hover:ring-blue-200" href={`/items/${report.item.id}`}>
 								{#if itemImageSrc(report.item)}
 									<img
 										alt={report.item.name}
@@ -148,9 +148,9 @@
 								{/if}
 								<div>
 									<p class="text-sm font-medium text-slate-600">Item</p>
-									<p class="mt-1 font-semibold text-slate-900">{report.item.name}</p>
+									<p class="mt-1 font-semibold text-slate-900 transition-colors hover:text-blue-700">{report.item.name}</p>
 								</div>
-							</div>
+							</a>
 						{/if}
 						<div class="rounded-[1.25rem] bg-sky-50 p-4">
 							<p class="text-sm font-medium text-slate-600">Question</p>
@@ -194,7 +194,7 @@
 							<p class="text-sm text-slate-600">{report.reporter_name} → {report.admin_name}</p>
 							<p class="text-xs text-slate-500">Submitted {formatReportDate(report.created_at)}</p>
 							{#if report.item}
-								<div class="flex items-center gap-3 rounded-[1rem] bg-white/70 p-3">
+								<a class="flex items-center gap-3 rounded-[1rem] bg-white/70 p-3 transition hover:bg-white hover:ring-1 hover:ring-blue-200" href={`/items/${report.item.id}`}>
 									{#if itemImageSrc(report.item)}
 										<img
 											alt={report.item.name}
@@ -204,9 +204,9 @@
 									{/if}
 									<div>
 										<p class="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Item</p>
-										<p class="text-sm font-medium text-slate-900">{report.item.name}</p>
+										<p class="text-sm font-medium text-slate-900 transition-colors hover:text-blue-700">{report.item.name}</p>
 									</div>
-								</div>
+								</a>
 							{/if}
 							<p class="text-sm text-slate-700"><span class="font-medium">Question:</span> {report.question_text_snapshot}</p>
 							<p class="text-sm text-slate-700"><span class="font-medium">Reason:</span> {report.reason}</p>
@@ -239,7 +239,7 @@
 							<p class="text-sm text-slate-600">{report.reporter_name} → {report.admin_name}</p>
 							<p class="text-xs text-slate-500">Submitted {formatReportDate(report.created_at)}</p>
 							{#if report.item}
-								<div class="flex items-center gap-3 rounded-[1rem] bg-white/80 p-3">
+								<a class="flex items-center gap-3 rounded-[1rem] bg-white/80 p-3 transition hover:bg-white hover:ring-1 hover:ring-blue-200" href={`/items/${report.item.id}`}>
 									{#if itemImageSrc(report.item)}
 										<img
 											alt={report.item.name}
@@ -249,9 +249,9 @@
 									{/if}
 									<div>
 										<p class="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Item</p>
-										<p class="text-sm font-medium text-slate-900">{report.item.name}</p>
+										<p class="text-sm font-medium text-slate-900 transition-colors hover:text-blue-700">{report.item.name}</p>
 									</div>
-								</div>
+								</a>
 							{/if}
 							<p class="text-sm text-slate-700"><span class="font-medium">Question:</span> {report.question_text_snapshot}</p>
 							<p class="text-sm text-slate-700"><span class="font-medium">Reason:</span> {report.reason}</p>

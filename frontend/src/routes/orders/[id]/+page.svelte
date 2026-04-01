@@ -142,7 +142,7 @@
 
                 <div class="grid gap-6">
                     {#each data.order.items as line (line.id)}
-                        <div class="group relative rounded-[2.5rem] bg-slate-50/50 p-8 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-2xl hover:shadow-blue-900/5">
+                        <a class="group relative block rounded-[2.5rem] bg-slate-50/50 p-8 ring-1 ring-slate-100 transition-all hover:bg-white hover:shadow-2xl hover:shadow-blue-900/5 hover:ring-blue-200" href={`/items/${line.item_id}`}>
                             <div class="flex flex-col gap-8 md:flex-row md:items-start">
                                 <div class="h-32 w-32 shrink-0 overflow-hidden rounded-[1.5rem] bg-white shadow-md ring-1 ring-slate-200">
                                     {#if line.item}
@@ -151,69 +151,69 @@
                                 </div>
                                 <div class="flex-1 space-y-2">
                                     <div class="flex flex-wrap items-start justify-between gap-4">
-                                        <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">{line.item?.name}</h3>
+                                        <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight group-hover:text-blue-700">{line.item?.name}</h3>
                                         <p class="text-xl font-black text-blue-700">฿{(line.price_at_purchase * line.quantity).toLocaleString()}</p>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">{line.quantity} Unit(s) × ฿{line.price_at_purchase.toLocaleString()}</p>
                                     <p class="text-sm font-medium leading-relaxed text-slate-600">{line.item?.description}</p>
                                 </div>
                             </div>
+                        </a>
 
-                            {#if (data.order.status === 'shipped' || data.order.status === 'partially_refunded') && line.refundable_quantity > 0}
-                                <details class="mt-8 border-t border-slate-100 pt-8 group/refund">
-                                    <summary class="flex cursor-pointer list-none items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 hover:text-amber-700 transition-colors">
-                                        <svg class="h-4 w-4 transition-transform group-open/refund:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M19 9l-7 7-7-7" /></svg>
-                                        Initiate Item Refund
-                                    </summary>
-                                    <form class="mt-8 grid gap-6" method="POST" enctype="multipart/form-data" action="?/refund">
-                                        <input name="order_item_id" type="hidden" value={line.id} />
-                                        <div class="grid gap-6 md:grid-cols-2">
-                                            <label class="block group">
-                                                <span class="text-slate-700">Return Quantity</span>
-                                                <select class="mt-2 w-full font-bold text-slate-900" name="quantity">
-                                                    {#each Array.from({ length: line.refundable_quantity }, (_, i) => i + 1) as q (q)}
-                                                        <option value={q}>{q}</option>
-                                                    {/each}
-                                                </select>
-                                            </label>
-                                            <label class="block group">
-                                                <span class="text-slate-700">Reason for Return</span>
-                                                <select
-                                                    class="mt-2 w-full font-bold text-slate-900"
-                                                    name="reason_code"
-                                                    bind:value={selectedRefundReasons[line.id]}
-                                                >
-                                    {#each refundReasons as r (r.value)}<option value={r.value}>{r.label}</option>{/each}
-                                                </select>
-                                            </label>
-                                        </div>
-                                        {#if selectedReasonFor(line.id) === 'other'}
-                                            <label class="block group">
-                                                <span class="text-slate-700">Other Reason</span>
-                                                <input
-                                                    class="mt-2 w-full font-bold text-slate-900"
-                                                    name="reason_detail"
-                                                    type="text"
-                                                    placeholder="Tell us the specific reason..."
-                                                    required
-                                                />
-                                            </label>
-                                        {/if}
+                        {#if (data.order.status === 'shipped' || data.order.status === 'partially_refunded') && line.refundable_quantity > 0}
+                            <details class="mt-[-1rem] border-t border-slate-100 px-8 pb-8 pt-8 group/refund">
+                                <summary class="flex cursor-pointer list-none items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 hover:text-amber-700 transition-colors">
+                                    <svg class="h-4 w-4 transition-transform group-open/refund:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M19 9l-7 7-7-7" /></svg>
+                                    Initiate Item Refund
+                                </summary>
+                                <form class="mt-8 grid gap-6" method="POST" enctype="multipart/form-data" action="?/refund">
+                                    <input name="order_item_id" type="hidden" value={line.id} />
+                                    <div class="grid gap-6 md:grid-cols-2">
                                         <label class="block group">
-                                            <span class="text-slate-700">Details of the issue</span>
-                                            <textarea class="mt-2 w-full font-bold text-slate-900" name="issue_description" rows="3" placeholder="Explain the defect or problem..." required></textarea>
+                                            <span class="text-slate-700">Return Quantity</span>
+                                            <select class="mt-2 w-full font-bold text-slate-900" name="quantity">
+                                                {#each Array.from({ length: line.refundable_quantity }, (_, i) => i + 1) as q (q)}
+                                                    <option value={q}>{q}</option>
+                                                {/each}
+                                            </select>
                                         </label>
-                                        <div class="flex flex-col gap-6 md:flex-row md:items-end">
-                                            <label class="flex-1 group">
-                                                <span class="text-slate-700">Evidence Image</span>
-                                                <input class="mt-2 w-full font-bold text-slate-900" name="evidence_image" type="file" accept="image/*" required />
-                                            </label>
-                                            <button class="btn-primary bg-amber-600 hover:bg-amber-700 shadow-amber-600/20 px-10" type="submit">Submit Request</button>
-                                        </div>
-                                    </form>
-                                </details>
-                            {/if}
-                        </div>
+                                        <label class="block group">
+                                            <span class="text-slate-700">Reason for Return</span>
+                                            <select
+                                                class="mt-2 w-full font-bold text-slate-900"
+                                                name="reason_code"
+                                                bind:value={selectedRefundReasons[line.id]}
+                                            >
+                                {#each refundReasons as r (r.value)}<option value={r.value}>{r.label}</option>{/each}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    {#if selectedReasonFor(line.id) === 'other'}
+                                        <label class="block group">
+                                            <span class="text-slate-700">Other Reason</span>
+                                            <input
+                                                class="mt-2 w-full font-bold text-slate-900"
+                                                name="reason_detail"
+                                                type="text"
+                                                placeholder="Tell us the specific reason..."
+                                                required
+                                            />
+                                        </label>
+                                    {/if}
+                                    <label class="block group">
+                                        <span class="text-slate-700">Details of the issue</span>
+                                        <textarea class="mt-2 w-full font-bold text-slate-900" name="issue_description" rows="3" placeholder="Explain the defect or problem..." required></textarea>
+                                    </label>
+                                    <div class="flex flex-col gap-6 md:flex-row md:items-end">
+                                        <label class="flex-1 group">
+                                            <span class="text-slate-700">Evidence Image</span>
+                                            <input class="mt-2 w-full font-bold text-slate-900" name="evidence_image" type="file" accept="image/*" required />
+                                        </label>
+                                        <button class="btn-primary bg-amber-600 hover:bg-amber-700 shadow-amber-600/20 px-10" type="submit">Submit Request</button>
+                                    </div>
+                                </form>
+                            </details>
+                        {/if}
                     {/each}
                 </div>
             </section>
