@@ -28,6 +28,14 @@
             default: return 'bg-slate-50 text-slate-700 ring-slate-200';
         }
     }
+
+    // Create properly typed pagination meta with safe property access
+    const paginationMeta = $derived({
+        total: data.orders.meta.total,
+        current_page: data.orders.meta.current_page,
+        last_page: data.orders.meta.last_page,
+        per_page: 'per_page' in data.orders.meta ? data.orders.meta.per_page : 10
+    });
 </script>
 
 <section class="mx-auto max-w-6xl space-y-10">
@@ -117,5 +125,5 @@
         {/each}
     </div>
 
-    <Pagination basePath={paginationBasePath()} meta={data.orders.meta} />
+    <Pagination basePath={paginationBasePath()} meta={paginationMeta} />
 </section>

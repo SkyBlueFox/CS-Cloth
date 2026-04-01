@@ -14,3 +14,7 @@ services:
       - WATCHPACK_POLLING=true
     networks:
       - sail
+networks:
+  sail:
+    external: true
+    name: backend_sail
