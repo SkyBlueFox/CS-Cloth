@@ -6,10 +6,20 @@ import type { Paginated, Question } from '$lib/types';
 export const load = async (event) => {
 	requireUser(event, ['user']);
 	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const questions = await backend<Paginated<Question>>(event, `/questions?page=${page}`);
+	const search = event.url.searchParams.get('search')?.trim() ?? '';
+	const params = new URLSearchParams({ page: String(page) });
+
+	if (search) {
+		params.set('search', search);
+	}
+
+	const questions = await backend<Paginated<Question>>(event, `/questions?${params.toString()}`);
 
 	return {
-		questions
+		questions,
+		filters: {
+			search
+		}
 	};
 };
 

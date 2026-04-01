@@ -13,9 +13,20 @@ class UserQuestionController extends Controller
 {
     public function index(Request $request)
     {
+        $search = trim((string) $request->query('search', ''));
+
         $questions = Question::query()
             ->with('item')
             ->where('asker_id', $request->user()->id)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('question_text', 'like', "%{$search}%")
+                        ->orWhereHas('item', function ($itemQuery) use ($search) {
+                            $itemQuery->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest()
             ->paginate(10);
 

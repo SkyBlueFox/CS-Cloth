@@ -1,8 +1,16 @@
 <script lang="ts">
     import Pagination from '$lib/components/Pagination.svelte';
     import { fly, fade } from 'svelte/transition';
+    import { page } from '$app/stores';
 
     let { data, form } = $props();
+
+    const paginationBasePath = $derived(() => {
+        const url = new URL($page.url);
+        url.searchParams.delete('page');
+        const search = url.searchParams.toString();
+        return `/questions${search ? '?' + search : ''}`;
+    });
 
     function reportTone(question: (typeof data.questions.data)[number]) {
         if (!question.answer_text) {
@@ -71,6 +79,23 @@
             {/if}
         </div>
     {/if}
+
+    <form class="flex flex-col gap-4 md:flex-row" method="GET" action="/questions">
+        <div class="relative flex-1">
+            <svg class="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <input
+                class="w-full rounded-2xl border-slate-200 bg-white pl-14 pr-6 py-4 text-sm font-bold text-slate-900 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                name="search"
+                placeholder="Search by question or item name..."
+                type="search"
+                value={data.filters.search}
+            />
+        </div>
+        <div class="flex gap-3">
+            <button class="btn-primary px-8" type="submit">Filter</button>
+            <a class="btn-secondary flex items-center px-8" href="/questions">Reset</a>
+        </div>
+    </form>
 
     <div class="space-y-8">
         {#each data.questions.data as question (question.id)}
@@ -184,6 +209,6 @@
     </div>
 
     <footer class="flex justify-center py-12 border-t border-slate-200">
-        <Pagination basePath="/questions" meta={data.questions.meta} />
+        <Pagination basePath={paginationBasePath()} meta={data.questions.meta} />
     </footer>
 </section>

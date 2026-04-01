@@ -10,6 +10,7 @@
     }
 
     let { data, form } = $props();
+    let selectedRefundReasons = $state<Record<number, string>>({});
 
     const refundReasons = [
         { value: 'damaged_item', label: 'Defective / Damaged' },
@@ -47,6 +48,10 @@
 
     function lineItemName(line: (typeof data.order.items)[number]) {
         return line.item?.name ?? `Item #${line.item_id}`;
+    }
+
+    function selectedReasonFor(lineId: number) {
+        return selectedRefundReasons[lineId] ?? refundReasons[0]?.value ?? '';
     }
 
     const timelineEvents: TimelineEvent[] = [
@@ -173,11 +178,27 @@
                                             </label>
                                             <label class="block group">
                                                 <span class="text-slate-700">Reason for Return</span>
-                                                <select class="mt-2 w-full font-bold text-slate-900" name="reason_code">
+                                                <select
+                                                    class="mt-2 w-full font-bold text-slate-900"
+                                                    name="reason_code"
+                                                    bind:value={selectedRefundReasons[line.id]}
+                                                >
                                     {#each refundReasons as r (r.value)}<option value={r.value}>{r.label}</option>{/each}
                                                 </select>
                                             </label>
                                         </div>
+                                        {#if selectedReasonFor(line.id) === 'other'}
+                                            <label class="block group">
+                                                <span class="text-slate-700">Other Reason</span>
+                                                <input
+                                                    class="mt-2 w-full font-bold text-slate-900"
+                                                    name="reason_detail"
+                                                    type="text"
+                                                    placeholder="Tell us the specific reason..."
+                                                    required
+                                                />
+                                            </label>
+                                        {/if}
                                         <label class="block group">
                                             <span class="text-slate-700">Details of the issue</span>
                                             <textarea class="mt-2 w-full font-bold text-slate-900" name="issue_description" rows="3" placeholder="Explain the defect or problem..." required></textarea>
