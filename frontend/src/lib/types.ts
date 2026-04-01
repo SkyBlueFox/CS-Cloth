@@ -138,6 +138,7 @@ export interface OrderStatusEvent {
 }
 
 export interface Order {
+	timeline: never[];
 	id: number;
 	order_number: string;
 	buyer_id: number;
