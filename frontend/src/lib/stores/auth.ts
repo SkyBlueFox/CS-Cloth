@@ -7,6 +7,7 @@ export type User = {
   role: 'user' | 'admin' | 'superadmin';
   balance: number;
   wallet_balance?: number;
+  pending_email_change?: string | null;
 };
 
 export const user = writable<User | null>(null);

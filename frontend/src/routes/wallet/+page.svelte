@@ -14,6 +14,7 @@
 	import krungsriLogo from '$lib/assets/payment-gateway/mobile-banking/Krungsri.png';
 	import krungthaiNextLogo from '$lib/assets/payment-gateway/mobile-banking/KrungthaiNEXT.png';
 	import scbEasyLogo from '$lib/assets/payment-gateway/mobile-banking/SCBEASY.png';
+	import { user } from '$lib/stores/auth';
 
 	let { data, form } = $props();
 
@@ -162,6 +163,16 @@
 		cardNumber = String(form?.values?.card_number ?? '');
 		expiryDate = String(form?.values?.expiry_date ?? '');
 		cvv = String(form?.values?.cvv ?? '');
+	});
+
+	$effect(() => {
+		user.update((current) => (current && current.role === 'user' ? { ...current, balance: data.balance } : current));
+	});
+
+	$effect(() => {
+		if (form?.updatedUser) {
+			user.update((current) => (current && current.role === 'user' ? { ...current, ...form.updatedUser } : form.updatedUser));
+		}
 	});
 </script>
 

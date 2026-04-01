@@ -1,6 +1,7 @@
 <script lang="ts">
     import { fly } from 'svelte/transition';
     let { form } = $props();
+    const otpSent = $derived(Boolean(form?.otpSent));
 </script>
 
 <div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-bl from-slate-50 via-sky-50/50 to-blue-50 px-4 py-12">
@@ -28,58 +29,90 @@
             </div>
         {/if}
 
-        <form class="mt-10 space-y-5" method="POST">
-            <label class="group block">
-                <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Full Name</span>
-                <input
-                    class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
-                    name="name"
-                    value={form?.name ?? ''}
-                    placeholder="John Doe"
-                    required
-                />
-            </label>
-
-            <label class="group block">
-                <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Email Address</span>
-                <input
-                    class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
-                    name="email"
-                    type="email"
-                    value={form?.email ?? ''}
-                    placeholder="example@email.com"
-                    required
-                />
-            </label>
-
-            <div class="grid gap-5 sm:grid-cols-2">
+        {#if !otpSent}
+            <form class="mt-10 space-y-5" method="POST" action="?/requestOtp">
                 <label class="group block">
-                    <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Password</span>
+                    <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Full Name</span>
                     <input
                         class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
-                        name="password"
-                        type="password"
-                        placeholder="••••••••"
+                        name="name"
+                        value={form?.name ?? ''}
+                        placeholder="John Doe"
                         required
                     />
                 </label>
 
                 <label class="group block">
-                    <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Confirm</span>
+                    <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Email Address</span>
                     <input
                         class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
-                        name="password_confirmation"
-                        type="password"
-                        placeholder="••••••••"
+                        name="email"
+                        type="email"
+                        value={form?.email ?? ''}
+                        placeholder="example@email.com"
                         required
                     />
                 </label>
+
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <label class="group block">
+                        <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Password</span>
+                        <input
+                            class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+                            name="password"
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </label>
+
+                    <label class="group block">
+                        <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">Confirm</span>
+                        <input
+                            class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-sm font-bold text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+                            name="password_confirmation"
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </label>
+                </div>
+
+                <button class="mt-6 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
+                    Send OTP
+                </button>
+            </form>
+        {:else}
+            <div class="mt-10 rounded-2xl bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700 ring-1 ring-blue-200">
+                Enter the 6-digit OTP sent to <span class="text-slate-900">{form?.email}</span>.
             </div>
 
-            <button class="mt-6 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
-                Create Account
-            </button>
-        </form>
+            <form class="mt-6 space-y-5" method="POST" action="?/verifyOtp">
+                <input type="hidden" name="name" value={form?.name ?? ''} />
+                <input type="hidden" name="email" value={form?.email ?? ''} />
+
+                <label class="group block">
+                    <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors group-focus-within:text-blue-600">OTP Code</span>
+                    <input
+                        class="w-full rounded-2xl border-slate-200 bg-white/50 px-5 py-4 text-center text-lg font-black tracking-[0.35em] text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 hover:border-slate-300"
+                        name="otp"
+                        inputmode="numeric"
+                        maxlength="6"
+                        minlength="6"
+                        placeholder="000000"
+                        required
+                    />
+                </label>
+
+                <button class="mt-6 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
+                    Verify And Create Account
+                </button>
+            </form>
+
+            <a class="mt-4 flex w-full items-center justify-center rounded-2xl border border-slate-200 py-3.5 text-xs font-black uppercase tracking-[0.2em] text-slate-500 transition-all hover:border-blue-300 hover:text-blue-600" href="/register">
+                Start Over
+            </a>
+        {/if}
 
         <div class="mt-10 pt-8 border-t border-slate-100 text-center">
             <p class="text-sm font-bold text-slate-500">

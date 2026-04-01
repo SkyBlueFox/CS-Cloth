@@ -2,6 +2,7 @@
     import { fly, fade } from 'svelte/transition';
     let { data, form } = $props();
     const profileLocked = $derived(data.user?.role === 'admin');
+    const pendingEmailChange = $derived(form?.pendingEmailChange ?? data.user?.pending_email_change ?? null);
 </script>
 
 <section class="grid gap-12 xl:grid-cols-[0.8fr_1.2fr]">
@@ -40,7 +41,7 @@
                         class="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 text-sm font-black text-slate-900 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:opacity-50"
                         disabled={profileLocked}
                         name="name"
-                        value={data.user?.name ?? ''}
+                        value={form?.name ?? data.user?.name ?? ''}
                         placeholder="John Doe"
                         required
                     />
@@ -53,11 +54,44 @@
                         disabled={profileLocked}
                         name="email"
                         type="email"
-                        value={data.user?.email ?? ''}
+                        value={form?.email ?? data.user?.email ?? ''}
                         placeholder="example@mail.com"
                         required
                     />
                 </label>
+
+                {#if data.user?.role === 'user' && pendingEmailChange}
+                    <div class="rounded-2xl bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700 ring-1 ring-blue-200">
+                        Pending email change: <span class="text-slate-900">{pendingEmailChange}</span>. Enter the OTP sent there to finish updating your email.
+                    </div>
+
+                    <div class="rounded-[2rem] border border-blue-200 bg-blue-50/60 p-5">
+                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Verify New Email</p>
+                        <p class="mt-2 text-sm font-bold leading-relaxed text-slate-600">
+                            We sent a 6-digit OTP to <span class="text-slate-900">{pendingEmailChange}</span>.
+                        </p>
+
+                        <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                            <label class="group block flex-1">
+                                <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-blue-600">OTP Code</span>
+                                <input
+                                    class="w-full rounded-2xl border-slate-200 bg-white px-5 py-4 text-center text-lg font-black tracking-[0.35em] text-slate-900 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                                    form="confirm-email-form"
+                                    name="otp"
+                                    inputmode="numeric"
+                                    maxlength="6"
+                                    minlength="6"
+                                    placeholder="000000"
+                                    required
+                                />
+                            </label>
+
+                            <button class="rounded-2xl bg-blue-600 px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-blue-600/20 transition-all hover:-translate-y-1 hover:bg-blue-700 active:translate-y-0 active:scale-95" form="confirm-email-form" type="submit">
+                                Confirm Email
+                            </button>
+                        </div>
+                    </div>
+                {/if}
 
                 <label class="group block">
                     <span class="mb-2 ml-1 block text-[10px] font-black uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-blue-600">Phone Number</span>
@@ -65,7 +99,7 @@
                         class="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 text-sm font-black text-slate-900 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:opacity-50"
                         disabled={profileLocked}
                         name="phone"
-                        value={data.user?.phone ?? ''}
+                        value={form?.phone ?? data.user?.phone ?? ''}
                         placeholder="081-XXX-XXXX"
                     />
                 </label>
@@ -105,6 +139,7 @@
                 </button>
             </div>
         </form>
+        <form id="confirm-email-form" method="POST" action="?/confirmEmailChange"></form>
     </div>
 
     {#if data.user?.role === 'user'}

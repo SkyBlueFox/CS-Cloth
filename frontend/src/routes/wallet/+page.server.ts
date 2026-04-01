@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { backend, getErrorMessage } from '$lib/server/backend';
 import { requireUser } from '$lib/server/auth';
-import type { Paginated, WalletTransaction } from '$lib/types';
+import type { Paginated, User, WalletTransaction } from '$lib/types';
 
 type WalletResponse = {
 	balance: number;
@@ -46,7 +46,7 @@ export const actions = {
 		}
 
 		try {
-			const response = await backend<{ message: string }>(event, '/wallet/top-up', {
+			const response = await backend<{ message: string; user: User }>(event, '/wallet/top-up', {
 				method: 'POST',
 				body: {
 					amount,
@@ -58,7 +58,10 @@ export const actions = {
 				}
 			});
 
-			return { success: response.message };
+			return {
+				success: response.message,
+				updatedUser: response.user
+			};
 		} catch (error) {
 			return fail(422, {
 				error: getErrorMessage(error, 'Unable to top up wallet.'),

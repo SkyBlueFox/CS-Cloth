@@ -9,7 +9,7 @@ export const load = async ({ locals }) => {
 };
 
 export const actions = {
-	default: async (event) => {
+	requestOtp: async (event) => {
 		const form = await event.request.formData();
 
 		try {
@@ -21,14 +21,39 @@ export const actions = {
 			});
 		} catch (error) {
 			return fail(422, {
-				error: getErrorMessage(error, 'Unable to send reset link.'),
-				email: String(form.get('email') ?? '')
+				error: getErrorMessage(error, 'Unable to send OTP.'),
+				email: String(form.get('email') ?? ''),
+				otpSent: false
 			});
 		}
 
 		return {
-			success: 'If that email exists, a password reset link has been sent.',
-			email: String(form.get('email') ?? '')
+			success: 'OTP sent to your email.',
+			email: String(form.get('email') ?? ''),
+			otpSent: true
 		};
+	},
+	resetPassword: async (event) => {
+		const form = await event.request.formData();
+
+		try {
+			await backend(event, '/auth/reset-password', {
+				body: {
+					email: String(form.get('email') ?? ''),
+					otp: String(form.get('otp') ?? ''),
+					password: String(form.get('password') ?? ''),
+					password_confirmation: String(form.get('password_confirmation') ?? '')
+				},
+				auth: false
+			});
+		} catch (error) {
+			return fail(422, {
+				error: getErrorMessage(error, 'Unable to reset password.'),
+				email: String(form.get('email') ?? ''),
+				otpSent: true
+			});
+		}
+
+		throw redirect(303, '/login');
 	}
 };
