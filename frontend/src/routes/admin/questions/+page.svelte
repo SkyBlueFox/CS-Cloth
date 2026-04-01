@@ -49,7 +49,7 @@
 					<div class="rounded-[1.25rem] bg-sky-50 p-4">{question.answer_text}</div>
 					<form method="POST" action="?/delete">
 						<input name="question_id" type="hidden" value={question.id} />
-						<button class="rounded-full border border-rose-300 px-4 py-2 text-sm text-rose-700" type="submit">Delete answer</button>
+						<button class="rounded-full border border-rose-300 px-4 py-2 text-sm text-rose-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-600 hover:bg-rose-600 hover:text-white hover:shadow-lg hover:shadow-rose-200" type="submit">Delete answer</button>
 					</form>
 				</article>
 			{/each}
