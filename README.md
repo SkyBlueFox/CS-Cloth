@@ -98,35 +98,35 @@ cd CS-Cloth
 
 2. Make sure Docker is running on your machine.
 
-3. Start the full stack.
-
-```bash
-./compose up -d
-```
-
-4. Run the database migrations and seed the demo data.
-
-```bash
-./compose exec laravel-api php artisan migrate:fresh --seed
-```
-
-5. Create the Laravel storage symlink if item images are missing.
-
-```bash
-./compose exec laravel-api php artisan storage:link
-```
-
-6. Copy the `.env.example` files to `.env` and update the database credentials.
+3. Copy the `.env.example` files to `.env` and update the database credentials.
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-7. Change the following lines in backend/.env to activate OTP sending functionality when registering or resetting password.
+4. Change the following lines in backend/.env to activate OTP sending functionality when registering or resetting password.
 ```bash
 MAIL_USERNAME=your-google-account@gmail.com (use your personal gmail)
 MAIL_PASSWORD=your-google-app-password (use your google app password from https://myaccount.google.com/apppasswords
 MAIL_FROM_ADDRESS="your-google-account@gmail.com" (use your personal gmail)
+```
+
+5. Start the full stack.
+
+```bash
+./compose up -d
+```
+
+6. Run the database migrations and seed the demo data.
+
+```bash
+./compose exec laravel-api php artisan migrate:fresh --seed
+```
+
+7. Create the Laravel storage symlink if item images are missing.
+
+```bash
+./compose exec laravel-api php artisan storage:link
 ```
 
 8. Open the app in your browser.
