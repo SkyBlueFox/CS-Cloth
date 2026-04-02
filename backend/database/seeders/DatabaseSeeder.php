@@ -153,6 +153,16 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        $chicken_sticker = Item::updateOrCreate(['name' => 'Chicken Sticker Pack'], [
+            'name' => 'Chicken Sticker Pack',
+            'created_by_id' => $admin1->id,
+            'description' => 'Nice Chicken stickers for your accessories.',
+            'price' => 2000.00,
+            'stock' => 5,
+            'image_path' => "items/chicken_sticker.jpg",
+            'is_active' => true,
+        ]);
+
         $cap = Item::updateOrCreate(['name' => 'CS Baseball Cap'], [
             'name' => 'CS Baseball Cap',
             'created_by_id' => $admin1->id,

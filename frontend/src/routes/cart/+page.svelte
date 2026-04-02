@@ -20,6 +20,8 @@
     const cart = $derived((data.cart as CartItem[]) ?? []);
     const totalPrice = $derived(cart.reduce((sum: number, i: CartItem) => sum + (Number(i.price) * i.quantity), 0));
     const errorMessage = $derived(form?.error || data?.error);
+    const itemsOverStock = $derived(cart.filter((item) => typeof item.stock === 'number' && item.quantity > item.stock));
+    const hasStockMismatch = $derived(itemsOverStock.length > 0);
 </script>
 
 <section class="mx-auto max-w-5xl space-y-10">
@@ -45,6 +47,13 @@
             {#if form?.success}
                 <p class="bg-emerald-50 px-8 py-5 text-sm font-black text-emerald-800 ring-1 ring-emerald-200">{form.success}</p>
             {/if}
+        </div>
+    {/if}
+    {#if hasStockMismatch}
+        <div class="rounded-[1.5rem] overflow-hidden border border-amber-200 shadow-sm">
+            <div class="bg-amber-50 px-8 py-5 text-sm font-black text-amber-900 ring-1 ring-amber-200">
+                Some cart quantities are higher than current stock. Lower them before checkout.
+            </div>
         </div>
     {/if}
 
@@ -82,28 +91,45 @@
                     </div>
 
                     <div class="flex flex-wrap items-center justify-center gap-6 border-t border-slate-50 pt-6 sm:border-none sm:pt-0">
-                        <form method="POST" action="?/update" use:enhance class="flex items-center gap-3 bg-slate-100 p-1.5 rounded-2xl ring-1 ring-slate-200">
+                        <form method="POST" action="?/update" use:enhance class="flex items-center gap-3 rounded-2xl bg-slate-100 p-1.5 ring-1 ring-slate-200">
                             <input type="hidden" name="item_id" value={item.id} />
                             <input 
                                 type="number" 
                                 name="quantity" 
                                 min="1" 
-                                class="w-14 bg-transparent border-none text-center font-black text-slate-900 focus:ring-0" 
+                                max={item.stock && item.stock > 0 ? item.stock : undefined}
+                                class="w-20 rounded-xl border-none bg-white px-3 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500/20" 
                                 value={item.quantity} 
+                                onchange={(event) => event.currentTarget.form?.requestSubmit()}
                             />
-                            <button type="submit" class="rounded-xl bg-white px-4 py-2 text-[10px] font-black uppercase text-blue-600 shadow-sm hover:bg-slate-900 hover:text-white transition-all">
-                                Update
-                            </button>
+                            <span class="px-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                Auto-saves
+                            </span>
                         </form>
                         
                         <form method="POST" action="?/remove" use:enhance>
                             <input type="hidden" name="item_id" value={item.id} />
-                            <button type="submit" class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all">
+                            <button aria-label={`Remove ${item.name} from cart`} title="Remove item" type="submit" class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 transition-all hover:bg-rose-600 hover:text-white">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
                         </form>
+                    </div>
+                    <div class="w-full border-t border-slate-100 pt-4 text-center sm:text-left">
+                        {#if typeof item.stock === 'number' && item.stock === 0}
+                            <p class="text-sm font-black uppercase tracking-widest text-rose-600">
+                                Out of stock. Remove this item to continue.
+                            </p>
+                        {:else if typeof item.stock === 'number' && item.quantity > item.stock}
+                            <p class="text-sm font-black uppercase tracking-widest text-amber-600">
+                                Only {item.stock} left in stock. Reduce quantity to continue.
+                            </p>
+                        {:else if typeof item.stock === 'number'}
+                            <p class="text-sm font-black uppercase tracking-widest text-slate-400">
+                                {item.stock} currently available
+                            </p>
+                        {/if}
                     </div>
                 </div>
             {/each}
@@ -118,7 +144,17 @@
             </div>
             <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <a href="/items" class="btn-secondary bg-white/10 border-transparent text-white hover:bg-white/20 px-8 py-5 text-center">Continue Shopping</a>
-                <a href="/checkout" class="btn-primary bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/20 px-12 py-5 text-center border-none">Secure Checkout</a>
+                <a
+                    aria-disabled={hasStockMismatch}
+                    class={`px-12 py-5 text-center ${
+                        hasStockMismatch
+                            ? 'cursor-not-allowed rounded-2xl bg-slate-500 text-white opacity-60'
+                            : 'btn-primary border-none bg-blue-600 shadow-xl shadow-blue-600/20 hover:bg-blue-500'
+                    }`}
+                    href={hasStockMismatch ? undefined : '/checkout'}
+                >
+                    {hasStockMismatch ? 'Adjust Quantities First' : 'Secure Checkout'}
+                </a>
             </div>
         </div>
     {/if}

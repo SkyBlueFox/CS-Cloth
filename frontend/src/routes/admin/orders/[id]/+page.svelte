@@ -39,6 +39,12 @@
 	function refundEventsNewestFirst(events: RefundEvent[]) {
 		return [...events].reverse();
 	}
+
+	function itemsHeading(status: string) {
+		if (status === 'pending') return 'Review items before shipping';
+		if (status === 'refunding' || status === 'partially_refunded' || status === 'refunded') return 'Review refund requests';
+		return 'Order items';
+	}
 </script>
 
 <section class="space-y-6">
@@ -71,7 +77,7 @@
 		<div class="panel space-y-4">
 			<div>
 				<p class="eyebrow">Items</p>
-				<h2 class="mt-2 text-2xl font-semibold">Review refund requests</h2>
+				<h2 class="mt-2 text-2xl font-semibold">{itemsHeading(data.order.status)}</h2>
 			</div>
 			<div class="space-y-4">
 				{#each data.order.items as line (line.id)}

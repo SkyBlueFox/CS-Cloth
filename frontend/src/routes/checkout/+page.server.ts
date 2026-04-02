@@ -9,6 +9,8 @@ interface CheckoutItem {
     price: number;
     quantity: number;
     image_path: string | null;
+    image_url: string | null;
+    stock: number;
 }
 
 export const load: PageServerLoad = async (event) => {
@@ -28,7 +30,9 @@ export const load: PageServerLoad = async (event) => {
                 name: res.item.name,
                 price: Number(res.item.price), // มั่นใจว่าเป็น Number
                 quantity: quantity,
-                image_path: res.item.image_path // สำหรับฟังก์ชัน itemImageSrc
+                image_path: res.item.image_path, // สำหรับฟังก์ชัน itemImageSrc
+                image_url: res.item.image_url,
+                stock: res.item.stock
             }];
         } else {
             // กรณี "Checkout จากตะกร้า"
@@ -38,7 +42,9 @@ export const load: PageServerLoad = async (event) => {
                 name: item.name,
                 price: Number(item.price),
                 quantity: item.quantity,
-                image_path: item.image_path
+                image_path: item.image_path,
+                image_url: item.image_url,
+                stock: item.stock
             }));
         }
 
@@ -79,12 +85,14 @@ export const actions: Actions = {
                         recipient_name: form.get('recipient_name'),
                         phone: form.get('phone'),
                         line_1: form.get('line_1'),
+                        line_2: form.get('line_2'),
                         district: form.get('district'),
                         province: form.get('province'),
                         postal_code: form.get('postal_code'),
-                        country: 'Thailand'
+                        country: form.get('country')
                     },
-                    save_address: form.get('save_address') === '1'
+                    save_address: form.get('save_address') === '1',
+                    set_as_default: form.get('set_as_default') === '1'
                 }
             });
             

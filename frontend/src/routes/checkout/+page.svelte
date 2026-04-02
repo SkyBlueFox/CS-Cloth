@@ -12,6 +12,8 @@
     
     // คำนวณราคารวม (Grand Total)
     const subtotal = $derived(data.checkoutItems.reduce((sum, i) => sum + (Number(i.price) * i.quantity), 0));
+    const itemsOverStock = $derived(data.checkoutItems.filter((item) => item.quantity > item.stock));
+    const hasStockMismatch = $derived(itemsOverStock.length > 0);
     
     // เตรียมข้อมูล items สำหรับส่งไป Backend
     const itemsJson = $derived(JSON.stringify(data.checkoutItems.map(i => ({ 
@@ -37,6 +39,11 @@
             {form.error}
         </div>
     {/if}
+    {#if hasStockMismatch}
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 font-bold text-amber-900 shadow-sm">
+            Some items in this checkout exceed current stock. Go back to your cart and lower the quantities before placing this order.
+        </div>
+    {/if}
 
     <form method="POST" action="?/placeOrder" use:enhance class="grid gap-10 lg:grid-cols-[1fr_24rem]">
         <input type="hidden" name="items_json" value={itemsJson} />
@@ -58,11 +65,23 @@
 
                 {#if selectedAddressId === ''}
                     <div in:fade class="grid gap-4 sm:grid-cols-2 rounded-[2rem] bg-slate-50 p-8 ring-1 ring-slate-200">
+                        <input name="label" placeholder="Address Label (e.g. Home, Office)" class="rounded-xl border-slate-200 p-4 font-bold" />
                         <input name="recipient_name" placeholder="Recipient Name" class="rounded-xl border-slate-200 p-4 font-bold" />
                         <input name="phone" placeholder="Phone Number" class="rounded-xl border-slate-200 p-4 font-bold" />
                         <input name="line_1" placeholder="Address Detail (House No., Street)" class="col-span-2 rounded-xl border-slate-200 p-4 font-bold" />
+                        <input name="line_2" placeholder="Apartment, building, landmark (optional)" class="col-span-2 rounded-xl border-slate-200 p-4 font-bold" />
+                        <input name="district" placeholder="District" class="rounded-xl border-slate-200 p-4 font-bold" />
                         <input name="province" placeholder="Province" class="rounded-xl border-slate-200 p-4 font-bold" />
                         <input name="postal_code" placeholder="Zip Code" class="rounded-xl border-slate-200 p-4 font-bold" />
+                        <input name="country" value="Thailand" class="rounded-xl border-slate-200 p-4 font-bold" />
+                        <label class="col-span-2 flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+                            <input class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" name="save_address" type="checkbox" value="1" />
+                            Save this address to my profile
+                        </label>
+                        <label class="col-span-2 flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+                            <input class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" name="set_as_default" type="checkbox" value="1" />
+                            Set as my default address
+                        </label>
                     </div>
                 {/if}
             </div>
@@ -105,6 +124,11 @@
                                 <p class="truncate text-sm font-black uppercase text-slate-900">{item.name}</p>
                                 <p class="text-[10px] font-black text-blue-600 mt-1 uppercase tracking-widest">Qty: {item.quantity}</p>
                                 <p class="text-sm font-black text-slate-900 mt-1">฿{(item.price * item.quantity).toLocaleString()}</p>
+                                {#if item.quantity > item.stock}
+                                    <p class="mt-1 text-[10px] font-black uppercase tracking-widest text-amber-600">
+                                        Only {item.stock} available
+                                    </p>
+                                {/if}
                             </div>
                         </div>
                     {:else}
@@ -125,10 +149,10 @@
 
                 <button 
                     type="submit" 
-                    disabled={data.checkoutItems.length === 0}
+                    disabled={data.checkoutItems.length === 0 || hasStockMismatch}
                     class="btn-primary w-full mt-10 py-5 bg-slate-900 hover:bg-blue-600 border-none shadow-xl shadow-slate-900/10 text-[10px] tracking-[0.3em] uppercase disabled:opacity-50 disabled:bg-slate-300"
                 >
-                    Place Order
+                    {hasStockMismatch ? 'Adjust Cart Quantities First' : 'Place Order'}
                 </button>
             </div>
         </aside>
