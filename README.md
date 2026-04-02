@@ -4,7 +4,7 @@ CS Cloth is a role-based merchandise storefront built with a Laravel API backend
 
 ## Current System At A Glance
 
-- `backend/`: Laravel 12 API with SQLite-by-default local setup
+- `backend/`: Laravel 12 API running in Docker with MySQL, Redis, and Mailpit
 - `frontend/`: SvelteKit 2 application for storefront and back-office screens
 - `backend/database/seeders/DatabaseSeeder.php`: demo users, sample items, sample orders, reports, wallet balances, and addresses
 - `/`: redirects by role
@@ -73,88 +73,146 @@ Key API groups live in [backend/routes/api.php](/Users/Tan/Uni/WebTech/CS-Cloth/
 
 ## Tech Stack
 
-- Backend: Laravel 12, PHP 8.2+, SQLite for default local dev
+- Backend: Laravel 12, PHP 8.2+, MySQL, Redis, Mailpit
 - Frontend: SvelteKit 2, Svelte 5, TypeScript, Vite
 - Styling: Tailwind CSS
 - Auth: token-based API auth with role-aware routing
 
-## Local Development Setup
+## Development Setup
 
-This is the most aligned setup with the current repository state.
+The current project workflow uses the repository-level `./compose` wrapper to start both backend and frontend together.
 
 ### Requirements
 
-- PHP 8.2+
-- Composer
-- Node.js 20+
-- npm
-- SQLite
+- Docker Desktop or Docker Engine with Compose support
+- `bash`
 
-### 1. Backend setup
+### Quickstart After Cloning
 
-```bash
-cd backend
-composer install
-npm install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate:fresh --seed
-php artisan storage:link
-```
-
-Start the API:
+1. Clone the repository and enter the project folder.
 
 ```bash
-cd backend
-php artisan serve
+git clone https://github.com/SkyBlueFox/CS-Cloth.git
+cd CS-Cloth
 ```
 
-Backend URL: `http://127.0.0.1:8000`
+2. Make sure Docker is running on your machine.
 
-### 2. Frontend setup
-
-For local development against `php artisan serve`, set `BACKEND_URL` to the Laravel server, not the Docker service name.
+3. Start the full stack.
 
 ```bash
-cd frontend
-npm install
-cp .env.example .env
+./compose up -d
 ```
 
-Then edit `frontend/.env` to:
-
-```env
-BACKEND_URL=http://127.0.0.1:8000
-```
-
-Start the frontend:
+4. Run the database migrations and seed the demo data.
 
 ```bash
-cd frontend
-npm run dev
+./compose exec laravel-api php artisan migrate:fresh --seed
 ```
 
-Frontend URL: `http://127.0.0.1:5173`
+5. Create the Laravel storage symlink if item images are missing.
+
+```bash
+./compose exec laravel-api php artisan storage:link
+```
+
+6. Open the app in your browser.
+
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost`
+- Mailpit: `http://localhost:8025`
+
+If you change dependencies or Dockerfiles later, rebuild with:
+
+```bash
+./compose up -d --build
+```
+
+### Start the full stack
+
+From the repository root:
+
+```bash
+./compose up -d
+```
+
+This starts:
+
+- Laravel backend
+- SvelteKit frontend
+- MySQL
+- Redis
+- Mailpit
+
+### Common commands
+
+Start services:
+
+```bash
+./compose up -d
+```
+
+Stop services:
+
+```bash
+./compose down
+```
+
+View logs:
+
+```bash
+./compose logs -f
+```
+
+Rebuild containers after dependency or Dockerfile changes:
+
+```bash
+./compose up -d --build
+```
+
+### URLs
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost`
+- Mailpit: `http://localhost:8025`
+
+### Database and app setup
+
+If you need a fresh seeded database:
+
+```bash
+./compose exec laravel-api php artisan migrate:fresh --seed
+```
+
+If storage symlinks are required:
+
+```bash
+./compose exec laravel-api php artisan storage:link
+```
 
 ## Seeded Demo Accounts
 
-After `php artisan migrate:fresh --seed`, these accounts are available:
+After `./compose exec laravel-api php artisan migrate:fresh --seed`, these accounts are available:
 
 - Superadmin: `tan@cloth.com` / `asd123`
 - Admin: `admin@cloth.com` / `asd123`
-- User: `user@cloth.com` / `asd123`
+- User: `sbkyajeg4312@gmail.com` / `asd123`
 - User: `may@cloth.com` / `asd123`
+- User: `toruplaytube@gmail.com` / `asd123`
+- User: `somchai@cloth.com` / `asd123`
 
 ## Important Configuration Notes
 
-- Backend local defaults use SQLite from [backend/.env.example](/Users/Tan/Uni/WebTech/CS-Cloth/backend/.env.example).
-- Registration OTP and password reset flows rely on mail configuration. For full testing, configure SMTP in `backend/.env`.
+- `./compose` is a small wrapper script around Docker Compose defined in [compose](/Users/Tan/Uni/WebTech/CS-Cloth/compose).
+- The stack uses the root [.env](/Users/Tan/Uni/WebTech/CS-Cloth/.env) together with the compose files below.
+- Backend runtime is currently MySQL/Redis/Mailpit oriented, not the old SQLite-only manual flow.
 - Uploaded item images are served from Laravel storage and stored under `backend/storage/app/public/items`.
 - The frontend root page is not a marketing landing page; the usable storefront starts at `/items`, and `/` redirects by role/session state.
+- Registration OTP and password reset testing depend on the mail service in the running stack.
 
-## Docker / Compose Status
+## Compose Files
 
-The repository includes compose files:
+The repository uses:
 
 - [docker-compose.yml](/Users/Tan/Uni/WebTech/CS-Cloth/docker-compose.yml)
 - [backend/compose.yaml](/Users/Tan/Uni/WebTech/CS-Cloth/backend/compose.yaml)
@@ -162,9 +220,9 @@ The repository includes compose files:
 
 Current note:
 
-- Frontend env defaults are Docker-oriented (`BACKEND_URL=http://laravel-api`).
-- The backend local `.env.example` is SQLite-oriented.
-- Because of that split, the manual local setup above is the clearest documented path unless you intentionally align the Docker env files for Sail/MySQL.
+- `./compose up -d` is the intended way to run the system now.
+- The wrapper injects `docker-compose.yml` and `docker.override.yml`.
+- The frontend talks to the backend over the internal Docker network.
 
 ## Screenshot Placeholders
 
