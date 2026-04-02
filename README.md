@@ -1,11 +1,88 @@
 # CS Cloth
 
-This repository contains:
+CS Cloth is a role-based merchandise storefront built with a Laravel API backend and a SvelteKit frontend. The current system supports public catalog browsing, customer checkout flows, admin inventory/order operations, and superadmin moderation/user management.
 
-- `backend/`: Laravel backend API
-- `frontend/`: SvelteKit frontend
+## Current System At A Glance
 
-## Requirements
+- `backend/`: Laravel 12 API with SQLite-by-default local setup
+- `frontend/`: SvelteKit 2 application for storefront and back-office screens
+- `backend/database/seeders/DatabaseSeeder.php`: demo users, sample items, sample orders, reports, wallet balances, and addresses
+- `/`: redirects by role
+- `/items`: main storefront entry point for guests and customers
+
+## What The System Currently Does
+
+### Customer-facing
+
+- Browse the item catalog and view item details
+- Register with email OTP verification
+- Log in, log out, and reset passwords
+- Manage profile information
+- Add items to cart and checkout
+- Manage saved delivery addresses
+- View order history and order details
+- Request order cancellation or refunds
+- View wallet balance and top up funds
+- Ask product questions and report inappropriate answers
+
+### Admin-facing
+
+- Create, edit, hide, and delete items
+- Search and sort inventory
+- Review orders and mark them as shipped
+- Review refund requests and approve or dismiss them
+- Answer or remove customer question responses
+
+### Superadmin-facing
+
+- Manage admin accounts
+- Manage user accounts
+- Review moderation reports
+- Resolve or dismiss reported answers
+
+## Main Routes
+
+### Frontend
+
+- `/items`: storefront listing
+- `/items/[id]`: item detail page
+- `/cart`: shopping cart
+- `/checkout`: checkout flow
+- `/orders`: customer orders
+- `/wallet`: customer wallet
+- `/questions`: customer question/report history
+- `/profile`: customer profile
+- `/admin/items`: admin inventory management
+- `/admin/orders`: admin order management
+- `/admin/questions`: admin Q&A moderation
+- `/superadmin/reports`: superadmin moderation queue
+- `/superadmin/admins`: superadmin admin management
+- `/superadmin/users`: superadmin user management
+
+### API
+
+Key API groups live in [backend/routes/api.php](/Users/Tan/Uni/WebTech/CS-Cloth/backend/routes/api.php):
+
+- `/api/auth/*`: login, register OTP, password reset, profile
+- `/api/items*`: public catalog
+- `/api/cart*`: cart operations
+- `/api/orders*`: checkout, order history, cancel, refund
+- `/api/wallet*`: wallet and top-up
+- `/api/admin/*`: admin item/order/question actions
+- `/api/superadmin/*`: superadmin user/admin/report actions
+
+## Tech Stack
+
+- Backend: Laravel 12, PHP 8.2+, SQLite for default local dev
+- Frontend: SvelteKit 2, Svelte 5, TypeScript, Vite
+- Styling: Tailwind CSS
+- Auth: token-based API auth with role-aware routing
+
+## Local Development Setup
+
+This is the most aligned setup with the current repository state.
+
+### Requirements
 
 - PHP 8.2+
 - Composer
@@ -13,16 +90,7 @@ This repository contains:
 - npm
 - SQLite
 
-## Fresh Setup
-
-1. Clone the repository and enter it:
-
-```bash
-git clone <your-repo-url>
-cd CS-Cloth
-```
-
-2. Set up the Laravel backend:
+### 1. Backend setup
 
 ```bash
 cd backend
@@ -34,16 +102,18 @@ php artisan migrate:fresh --seed
 php artisan storage:link
 ```
 
-3. Start the Laravel backend:
+Start the API:
 
 ```bash
 cd backend
 php artisan serve
 ```
 
-The backend will run at `http://127.0.0.1:8000`.
+Backend URL: `http://127.0.0.1:8000`
 
-4. Set up the SvelteKit frontend in a second terminal:
+### 2. Frontend setup
+
+For local development against `php artisan serve`, set `BACKEND_URL` to the Laravel server, not the Docker service name.
 
 ```bash
 cd frontend
@@ -51,34 +121,79 @@ npm install
 cp .env.example .env
 ```
 
-5. Start the frontend:
+Then edit `frontend/.env` to:
+
+```env
+BACKEND_URL=http://127.0.0.1:8000
+```
+
+Start the frontend:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-The frontend will run at `http://127.0.0.1:5173`.
+Frontend URL: `http://127.0.0.1:5173`
 
-## Default Seed Accounts
+## Seeded Demo Accounts
 
-- `SUPERADMIN`
-  - email: `tan@cloth.com`
-  - password: `asd123`
-- `ADMIN`
-  - email: `admin@cloth.com`
-  - password: `asd123`
-- `USER`
-  - email: `user@cloth.com`
-  - password: `asd123`
+After `php artisan migrate:fresh --seed`, these accounts are available:
 
-## Notes
+- Superadmin: `tan@cloth.com` / `asd123`
+- Admin: `admin@cloth.com` / `asd123`
+- User: `user@cloth.com` / `asd123`
+- User: `may@cloth.com` / `asd123`
 
-- Use `backend/.env` for Laravel configuration.
-- Use `frontend/.env` for SvelteKit configuration.
-- The root `.env` is not part of the intended app setup.
-- Uploaded item images are stored under `backend/storage/app/public/items`.
-- If you want a clean local reset, run:
+## Important Configuration Notes
+
+- Backend local defaults use SQLite from [backend/.env.example](/Users/Tan/Uni/WebTech/CS-Cloth/backend/.env.example).
+- Registration OTP and password reset flows rely on mail configuration. For full testing, configure SMTP in `backend/.env`.
+- Uploaded item images are served from Laravel storage and stored under `backend/storage/app/public/items`.
+- The frontend root page is not a marketing landing page; the usable storefront starts at `/items`, and `/` redirects by role/session state.
+
+## Docker / Compose Status
+
+The repository includes compose files:
+
+- [docker-compose.yml](/Users/Tan/Uni/WebTech/CS-Cloth/docker-compose.yml)
+- [backend/compose.yaml](/Users/Tan/Uni/WebTech/CS-Cloth/backend/compose.yaml)
+- [frontend/docker-compose.yml](/Users/Tan/Uni/WebTech/CS-Cloth/frontend/docker-compose.yml)
+
+Current note:
+
+- Frontend env defaults are Docker-oriented (`BACKEND_URL=http://laravel-api`).
+- The backend local `.env.example` is SQLite-oriented.
+- Because of that split, the manual local setup above is the clearest documented path unless you intentionally align the Docker env files for Sail/MySQL.
+
+## Screenshot Placeholders
+
+Use this section as a checklist for the images that should be added later. Recommended location: `docs/screenshots/`.
+
+- `docs/screenshots/storefront-items.png`
+  Put a full catalog view from `/items` showing the hero section and product cards.
+- `docs/screenshots/item-detail.png`
+  Put a single product page from `/items/[id]` showing image, price, stock, and question area.
+- `docs/screenshots/cart-checkout.png`
+  Put either the cart page or checkout page showing address selection and order summary.
+- `docs/screenshots/customer-orders.png`
+  Put the customer order history or order detail page, ideally with a refund state visible.
+- `docs/screenshots/admin-items.png`
+  Put the admin inventory screen from `/admin/items`, including search/sort controls.
+- `docs/screenshots/admin-orders.png`
+  Put the admin order detail or list view with shipping/refund actions visible.
+- `docs/screenshots/superadmin-reports.png`
+  Put the superadmin moderation queue from `/superadmin/reports`.
+
+Suggested caption template to use once the images exist:
+
+```md
+![Storefront catalog showing featured merchandise and live stock badges](docs/screenshots/storefront-items.png)
+```
+
+## Resetting Local Data
+
+To rebuild the local database with fresh sample data:
 
 ```bash
 cd backend
