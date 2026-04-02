@@ -59,7 +59,7 @@ export const actions = {
 		} catch (error) {
 			return fail(422, {
 				error: getErrorMessage(error, 'Unable to update profile.'),
-				pendingEmailChange: submittedEmail !== String(user.email ?? '') ? submittedEmail : null,
+				pendingEmailChange: null,
 				name: submittedName,
 				email: submittedEmail,
 				phone: submittedPhone

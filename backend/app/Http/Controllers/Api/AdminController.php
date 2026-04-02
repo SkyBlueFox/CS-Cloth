@@ -130,8 +130,15 @@ class AdminController extends Controller
         $search = trim((string) $request->query('search', ''));
         $sort = (string) $request->query('sort', 'newest');
         $queue = (string) $request->query('queue', 'shipping');
-        $refundReasons = collect(explode(',', (string) $request->query('refund_reasons', '')))
-            ->map(fn (string $reason) => trim($reason))
+        $refundReasons = collect($request->query('refund_reasons', []))
+            ->flatMap(function (array|string $reason) {
+                if (is_array($reason)) {
+                    return $reason;
+                }
+
+                return explode(',', $reason);
+            })
+            ->map(fn (mixed $reason) => trim((string) $reason))
             ->filter()
             ->values();
 

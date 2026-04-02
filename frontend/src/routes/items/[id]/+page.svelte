@@ -33,6 +33,15 @@
         reportQuestionId = null;
         reportReason = '';
     }
+
+    function formatDate(value: string | null) {
+        if (!value) return 'Unknown time';
+
+        return new Intl.DateTimeFormat('en-GB', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        }).format(new Date(value));
+    }
 </script>
 
 <section class="mx-auto max-w-4xl space-y-12">
@@ -97,6 +106,12 @@
                         Buy it now
                     </button>
                 </div>
+
+                {#if data.cartQuantity > 0}
+                    <p class="text-center text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 sm:text-left">
+                        Already in your bag: {data.cartQuantity}
+                    </p>
+                {/if}
             </div>
         {:else if !data.viewerRole}
             <div class="panel p-10 text-center space-y-6 rounded-[3rem]">
@@ -167,6 +182,9 @@
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">{question.asker_name} asked:</p>
                                 <p class="mt-2 text-base font-bold leading-relaxed text-slate-900">{question.question_text}</p>
+                                <p class="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                    Asked on {formatDate(question.created_at)}
+                                </p>
                             </div>
                         </div>
                         {#if question.answer_text}
@@ -193,6 +211,9 @@
                                     {/if}
                                 </div>
                                 <p class="text-sm font-black leading-relaxed">{question.answer_text}</p>
+                                <p class="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-blue-200">
+                                    Replied on {formatDate(question.updated_at)}
+                                </p>
                             </div>
                         {:else}
                             <div class="mt-6 ml-10 flex items-center gap-3">

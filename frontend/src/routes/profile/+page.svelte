@@ -2,7 +2,7 @@
     import { fly, fade } from 'svelte/transition';
     let { data, form } = $props();
     const profileLocked = $derived(data.user?.role === 'admin');
-    const pendingEmailChange = $derived(form?.pendingEmailChange ?? data.user?.pending_email_change ?? null);
+    const pendingEmailChange = $derived(form?.pendingEmailChange ?? null);
 </script>
 
 <section class="grid gap-12 xl:grid-cols-[0.8fr_1.2fr]">

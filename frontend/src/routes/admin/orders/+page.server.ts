@@ -20,8 +20,8 @@ export const load = async (event) => {
 		params.set('search', search);
 	}
 
-	for (const refundReason of refundReasons) {
-		params.append('refund_reasons', refundReason);
+	if (refundReasons.length > 0) {
+		params.set('refund_reasons', refundReasons.join(','));
 	}
 
 	const orders = await backend<Paginated<Order>>(event, `/admin/orders?${params.toString()}`);

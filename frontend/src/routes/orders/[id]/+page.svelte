@@ -231,6 +231,10 @@
                     </p>
                     <div class="space-y-2 border-t border-slate-200 pt-4">
                         <div class="flex justify-between text-[11px] font-bold uppercase text-slate-400">
+                            <span>Order total</span>
+                            <span class="text-slate-900">฿{data.order.total_price.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between text-[11px] font-bold uppercase text-slate-400">
                             <span>Courier</span>
                             <span class="text-slate-900">{data.order.delivery_method_label ?? 'Not specified'}</span>
                         </div>

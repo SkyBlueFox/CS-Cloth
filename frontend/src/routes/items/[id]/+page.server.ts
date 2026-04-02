@@ -1,15 +1,26 @@
 import { fail, error, redirect } from '@sveltejs/kit';
 import { backend, getErrorMessage, isApiError } from '$lib/server/backend';
-import type { Item, Question } from '$lib/types';
+import type { CartItem, Item, Question } from '$lib/types';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
     try {
         // ดึงข้อมูลสินค้าและคำถาม
         const response = await backend<{ item: Item; questions: Question[] }>(event, `/items/${event.params.id}`);
+        let cartQuantity = 0;
+
+        if (event.locals.user?.role === 'user') {
+            try {
+                const cartResponse = await backend<{ data: CartItem[] }>(event, '/cart');
+                cartQuantity = cartResponse.data.find((entry) => entry.id === Number(event.params.id))?.quantity ?? 0;
+            } catch (cartError) {
+                console.error('Error loading cart quantity for item detail:', cartError);
+            }
+        }
 
         return {
             ...response,
+            cartQuantity,
             viewerRole: event.locals.user?.role ?? null
         };
     } catch (err) {

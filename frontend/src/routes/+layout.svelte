@@ -56,7 +56,7 @@
     
     {#if currentUser && !isPublicPage}
         <aside
-            class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r border-slate-200 bg-white transition-all duration-500 lg:static {sidebarOpen ? 'w-72 translate-x-0 opacity-100 pointer-events-auto' : 'w-0 -translate-x-full opacity-0 pointer-events-none'}"
+            class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r border-slate-200 bg-white transition-all duration-500 {sidebarOpen ? 'w-72 translate-x-0 opacity-100 pointer-events-auto' : 'w-0 -translate-x-full opacity-0 pointer-events-none'}"
         >
             <div class="flex h-20 shrink-0 items-center border-b border-slate-100 px-8">
                 <a class="text-xl font-black tracking-[0.3em] text-blue-700" href="/">
@@ -81,7 +81,7 @@
         </aside>
     {/if}
 
-    <div class="flex min-w-0 flex-1 flex-col">
+    <div class={`flex min-w-0 flex-1 flex-col transition-all duration-500 ${currentUser && !isPublicPage && sidebarOpen ? 'lg:pl-72' : 'lg:pl-0'}`}>
         
         {#if !isPublicPage}
             <header class="sticky top-0 z-40 flex h-20 shrink-0 items-center justify-between border-b border-slate-100 bg-white/80 px-8 backdrop-blur-md">
