@@ -168,28 +168,65 @@ Current note:
 
 ## Screenshot Placeholders
 
-Use this section as a checklist for the images that should be added later. Recommended location: `docs/screenshots/`.
+หน้าแสดงรายการสินค้าทั้งหมด
 
 - `docs/screenshots/storefront-items.png`
-  Put a full catalog view from `/items` showing the hero section and product cards.
+  ![Storefront catalog showing featured merchandise and live stock badges](docs/screenshots/storefront-items.png)
+
+
+หน้าแสดงรายการสินค้าที่เลือก
+
 - `docs/screenshots/item-detail.png`
-  Put a single product page from `/items/[id]` showing image, price, stock, and question area.
+  ![Item Detail Page](docs/screenshots/item-detail.png)
+
+
+หน้าการชำระเงิน
+
 - `docs/screenshots/cart-checkout.png`
-  Put either the cart page or checkout page showing address selection and order summary.
-- `docs/screenshots/customer-orders.png`
-  Put the customer order history or order detail page, ideally with a refund state visible.
+  ![Cart Checkout Page](docs/screenshots/cart-checkout.png)
+
+
+หน้าการจัดการสินค้าในระบบแอดมิน
+
 - `docs/screenshots/admin-items.png`
-  Put the admin inventory screen from `/admin/items`, including search/sort controls.
+  ![Admin Inventory Page](docs/screenshots/admin-items.png)
+
+
+หน้าการจัดการรายการสั่งซื้อในระบบแอดมิน
+
 - `docs/screenshots/admin-orders.png`
-  Put the admin order detail or list view with shipping/refund actions visible.
+  ![Admin Orders Page](docs/screenshots/admin-orders.png)
+
+
+หน้าแสดงรายการคำถามและคำตอบ
+
+- `docs/screenshots/questions.png`
+  ![Customer Orders Page](docs/screenshots/questions.png)
+
+
+หน้าการตอบคำถามโดยแอดมิน
+
+- `docs/screenshots/admin-questions.png`
+  ![Admin Questions Page](docs/screenshots/admin-questions.png)
+
+
+หน้าการจัดการการตอบคำถามของแอดมิน
+
 - `docs/screenshots/superadmin-reports.png`
-  Put the superadmin moderation queue from `/superadmin/reports`.
+  ![Superadmin Reports Page](docs/screenshots/superadmin-reports.png)
 
-Suggested caption template to use once the images exist:
 
-```md
-![Storefront catalog showing featured merchandise and live stock badges](docs/screenshots/storefront-items.png)
-```
+หน้ากระเป๋าเงินและการเติมเงิน
+
+- `docs/screenshots/wallet.png`
+  ![Customer Wallet Page](docs/screenshots/wallet.png)
+
+
+หน้าจัดการผู้ใช้ในระบบ
+
+- `docs/screenshots/superadmin-users.png`
+  ![Superadmin Users Page](docs/screenshots/superadmin-users.png)
+
 
 ## Resetting Local Data
 
