@@ -193,8 +193,14 @@
                                     <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Full Address</span>
                                     <input class="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900" name="line_1" value={address.line_1} required />
                                 </label>
+                                <label class="block md:col-span-2">
+                                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Address Line 2</span>
+                                    <input class="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900" name="line_2" placeholder="Apartment, building, landmark" value={address.line_2 ?? ''} />
+                                </label>
                                 <input class="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900" name="district" placeholder="District" value={address.district} required />
                                 <input class="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900" name="province" placeholder="Province" value={address.province} required />
+                                <input class="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900" name="postal_code" placeholder="Postal code" value={address.postal_code} required />
+                                <input class="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900" name="country" placeholder="Country" value={address.country} required />
                             </div>
 
                             <div class="mt-8 flex items-center justify-between border-t border-slate-200/60 pt-6">

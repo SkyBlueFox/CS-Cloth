@@ -39,15 +39,5 @@ export const actions: Actions = {
         } catch (error) {
             return fail(422, { error: getErrorMessage(error, 'Unable to cancel order.') });
         }
-    },
-    refund: async (event) => {
-        requireUser(event, ['user']);
-        const form = await event.request.formData();
-        try {
-            await backend(event, `/orders/${form.get('order_id')}/refund`, { method: 'PATCH' });
-            return { success: 'Refund request submitted.' };
-        } catch (error) {
-            return fail(422, { error: getErrorMessage(error, 'Unable to request refund.') });
-        }
     }
 };

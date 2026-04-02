@@ -70,7 +70,7 @@ Route::middleware(['api.auth', 'role:user'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']); // <--- จุด Checkout หลัก
     Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
-    Route::patch('/orders/{order}/refund', [OrderController::class, 'requestRefund']);
+    Route::match(['post', 'patch'], '/orders/{order}/refund', [OrderController::class, 'requestRefund']);
 
     // Wallet
     Route::get('/wallet', [WalletController::class, 'index']);

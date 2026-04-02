@@ -24,6 +24,9 @@
             case 'pending': return 'bg-amber-50 text-amber-700 ring-amber-200';
             case 'shipped': return 'bg-blue-50 text-blue-700 ring-blue-200';
             case 'completed': return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
+            case 'refunding': return 'bg-amber-50 text-amber-700 ring-amber-200';
+            case 'partially_refunded': return 'bg-violet-50 text-violet-700 ring-violet-200';
+            case 'refunded': return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
             case 'cancelled': return 'bg-rose-50 text-rose-700 ring-rose-200';
             default: return 'bg-slate-50 text-slate-700 ring-slate-200';
         }
@@ -74,6 +77,11 @@
         <div in:fly={{ y: -10 }} class="rounded-2xl shadow-sm overflow-hidden">
             {#if form?.error} <p class="bg-rose-50 px-6 py-4 text-sm font-black text-rose-800 ring-1 ring-rose-200">{form.error}</p> {/if}
             {#if form?.success} <p class="bg-emerald-50 px-6 py-4 text-sm font-black text-emerald-800 ring-1 ring-emerald-200">{form.success}</p> {/if}
+        </div>
+    {/if}
+    {#if data.error}
+        <div class="rounded-2xl shadow-sm overflow-hidden">
+            <p class="bg-rose-50 px-6 py-4 text-sm font-black text-rose-800 ring-1 ring-rose-200">{data.error}</p>
         </div>
     {/if}
 
