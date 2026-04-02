@@ -116,7 +116,20 @@ cd CS-Cloth
 ./compose exec laravel-api php artisan storage:link
 ```
 
-6. Open the app in your browser.
+6. Copy the `.env.example` files to `.env` and update the database credentials.
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+7. Change the following lines in backend/.env to activate OTP sending functionality when registering or resetting password.
+```bash
+MAIL_USERNAME=your-google-account@gmail.com (use your personal gmail)
+MAIL_PASSWORD=your-google-app-password (use your google app password from https://myaccount.google.com/apppasswords
+MAIL_FROM_ADDRESS="your-google-account@gmail.com" (use your personal gmail)
+```
+
+8. Open the app in your browser.
 
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost`
