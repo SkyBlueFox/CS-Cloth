@@ -2,46 +2,40 @@ import { fail, redirect, isRedirect } from '@sveltejs/kit';
 import { backend, getErrorMessage } from '$lib/server/backend';
 import { landingFor } from '$lib/server/auth';
 import { setAuthToken } from '$lib/server/session';
+import type { Actions, PageServerLoad } from './$types';
 
-export const load = async ({ locals }) => {
-	if (locals.user) {
-		throw redirect(303, landingFor(locals.user));
-	}
+export const load: PageServerLoad = async ({ locals }) => {
+    if (locals.user) {
+        throw redirect(303, landingFor(locals.user));
+    }
 };
 
-export const actions = {
-	default: async (event) => {
-		const form = await event.request.formData();
+export const actions: Actions = {
+    default: async (event) => {
+        const form = await event.request.formData();
+        const email = String(form.get('email') ?? '');
+        const password = String(form.get('password') ?? '');
 
-		let token: string;
+        try {
+            const response = await backend<{ data: { token: string } }>(event, '/auth/login', {
+                method: 'POST',
+                body: { email, password },
+                auth: false
+            });
 
-		try {
-			const response = await backend<{ data: { token: string } }>(event, '/auth/login', {
-				body: {
-					email: String(form.get('email') ?? ''),
-					password: String(form.get('password') ?? '')
-				},
-				auth: false
-			});
+            // บันทึก Token ลงใน Cookie
+            setAuthToken(event.cookies, response.data.token);
 
-			console.log('--- LOGIN ACTION DEBUG ---');
-			console.log('Full API Response:', response);
-			console.log('Extracted Token:', response.data.token)
+            // Login สำเร็จเด้งไปหน้าแรก
+            throw redirect(303, '/');
+        } catch (error) {
+            // สำคัญ: ถ้าเป็น redirect error ของ SvelteKit ให้ปล่อยผ่านเพื่อให้หน้าเปลี่ยนจริง
+            if (isRedirect(error)) throw error;
 
-			setAuthToken(event.cookies, response.data.token);
-
-			throw redirect(303, '/');
-		} catch (error) {
-			// 👇 If it's a redirect, let it through!
-			if (isRedirect(error)) throw error;
-
-			return fail(422, {
-				error: getErrorMessage(error, 'Unable to login.'),
-				email: String(form.get('email') ?? '')
-			});
-		}
-
-		setAuthToken(event.cookies, token);
-		throw redirect(303, '/');
-	}
+            return fail(422, {
+                error: getErrorMessage(error, 'Unable to login.'),
+                email: email
+            });
+        }
+    }
 };
