@@ -17,6 +17,7 @@ export const actions = {
 
 		try {
 			await backend(event, `/admin/items/${event.params.id}`, {
+				method: 'PATCH',
 				body: form
 			});
 		} catch (error) {
