@@ -54,7 +54,7 @@
             </label>
 
             <button class="mt-4 w-full rounded-2xl bg-slate-900 py-4.5 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30 active:translate-y-0 active:scale-95" type="submit">
-                Access Store
+                LOG IN
             </button>
         </form>
 
