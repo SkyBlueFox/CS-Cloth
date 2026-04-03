@@ -1,56 +1,10 @@
-Steps to do:
+## Backend
 
-If not already cloned
-```
-git clone https://github.com/SkyBlueFox/CS-Cloth.git
-cd CS-Cloth
-```
+`backend/` is the Laravel 12 API for CS Cloth.
 
-If already cloned
-```
-git checkout develop
-git flow init
-cp .env.example .env
-```
+Current role:
+- Serves JSON endpoints from `routes/api.php`
+- Sends OTP emails with `resources/views/emails/otp-code.blade.php`
+- Does not serve the application frontend anymore
 
-then edit .env file
-```
-DB_DATABASE=cs_cloth
-REDIS_PREFIX=""
-```
-
-then
-```
-docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd):/app" \
-    -w /app \
-    composer:latest \
-    install --ignore-platform-reqs
-```
-
-then
-```aiignore
-sail up -d
-sail artisan key:generate
-sail artisan migrate:fresh --seed
-```
-
-then
-```aiignore
-sail artisan storage:link
-```
-
-## Login Credentials (For Testing)
-**Super Admin:**
-- Email: tan@cloth.com
-- Password: asd123
-
-**Admin:**
-- Email: admin@cloth.com
-- Password: asd123
-
-**Normal User:**
-- Email: user@cloth.com
-- Password: asd123
-
+Use the repository root [README.md](/Users/Tan/Uni/WebTech/CS-Cloth/README.md) for setup and run instructions.
