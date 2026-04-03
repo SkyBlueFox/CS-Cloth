@@ -320,6 +320,11 @@ Current note:
 - `docs/screenshots/superadmin-users.png`
   ![Superadmin Users Page](docs/screenshots/superadmin-users.png)
 
+หน้ารีเซ็ทรหัสหากลืมรหัสผ่าน
+
+- `docs/screenshots/reset-password.png`
+  ![Reset Password Page](docs/screenshots/reset-password.png)'
+
 
 ## Resetting Local Data
 
