@@ -1,211 +1,123 @@
 # CS Cloth
 
-CS Cloth is a role-based merchandise storefront built with a Laravel API backend and a SvelteKit frontend. The current system supports public catalog browsing, customer checkout flows, admin inventory/order operations, and superadmin moderation/user management.
+CS Cloth is a role-based merchandise storefront with:
+- `backend/`: Laravel 12 API
+- `frontend/`: SvelteKit 2 app
 
-## Current System At A Glance
+The repository no longer includes a Laravel-served frontend. The backend is API-only.
 
-- `backend/`: Laravel 12 API running in Docker with MySQL, Redis, and Mailpit
-- `frontend/`: SvelteKit 2 application for storefront and back-office screens
-- `backend/database/seeders/DatabaseSeeder.php`: demo users, sample items, sample orders, reports, wallet balances, and addresses
-- `/`: redirects by role
-- `/items`: main storefront entry point for guests and customers
+## Current App Surface
 
-## What The System Currently Does
+Frontend routes:
+- `/items`
+- `/items/[id]`
+- `/cart`
+- `/checkout`
+- `/orders`
+- `/wallet`
+- `/questions`
+- `/profile`
+- `/admin/items`
+- `/admin/orders`
+- `/admin/questions`
+- `/superadmin/reports`
+- `/superadmin/admins`
+- `/superadmin/users`
 
-### Customer-facing
+API routes:
+- `/api/auth/*`
+- `/api/items*`
+- `/api/cart*`
+- `/api/orders*`
+- `/api/wallet*`
+- `/api/admin/*`
+- `/api/superadmin/*`
 
-- Browse the item catalog and view item details
-- Register with email OTP verification
-- Log in, log out, and reset passwords
-- Manage profile information
-- Add items to cart and checkout
-- Manage saved delivery addresses
-- View order history and order details
-- Request order cancellation or refunds
-- View wallet balance and top up funds
-- Ask product questions and report inappropriate answers
-
-### Admin-facing
-
-- Create, edit, hide, and delete items
-- Search and sort inventory
-- Review orders and mark them as shipped
-- Review refund requests and approve or dismiss them
-- Answer or remove customer question responses
-
-### Superadmin-facing
-
-- Manage admin accounts
-- Manage user accounts
-- Review moderation reports
-- Resolve or dismiss reported answers
-
-## Main Routes
-
-### Frontend
-
-- `/items`: storefront listing
-- `/items/[id]`: item detail page
-- `/cart`: shopping cart
-- `/checkout`: checkout flow
-- `/orders`: customer orders
-- `/wallet`: customer wallet
-- `/questions`: customer question/report history
-- `/profile`: customer profile
-- `/admin/items`: admin inventory management
-- `/admin/orders`: admin order management
-- `/admin/questions`: admin Q&A moderation
-- `/superadmin/reports`: superadmin moderation queue
-- `/superadmin/admins`: superadmin admin management
-- `/superadmin/users`: superadmin user management
-
-### API
-
-Key API groups live in [backend/routes/api.php](/Users/Tan/Uni/WebTech/CS-Cloth/backend/routes/api.php):
-
-- `/api/auth/*`: login, register OTP, password reset, profile
-- `/api/items*`: public catalog
-- `/api/cart*`: cart operations
-- `/api/orders*`: checkout, order history, cancel, refund
-- `/api/wallet*`: wallet and top-up
-- `/api/admin/*`: admin item/order/question actions
-- `/api/superadmin/*`: superadmin user/admin/report actions
-
-## Tech Stack
+## Stack
 
 - Backend: Laravel 12, PHP 8.2+, MySQL, Redis, Mailpit
 - Frontend: SvelteKit 2, Svelte 5, TypeScript, Vite
 - Styling: Tailwind CSS
-- Auth: token-based API auth with role-aware routing
 
-## Development Setup
+## Clone And Run
 
-The current project workflow uses the repository-level `./compose` wrapper to start both backend and frontend together.
-
-### Requirements
-
+Requirements:
 - Docker Desktop or Docker Engine with Compose support
 - `bash`
 
-### Quickstart After Cloning
-
-1. Clone the repository and enter the project folder.
+1. Clone the repository.
 
 ```bash
 git clone https://github.com/SkyBlueFox/CS-Cloth.git
 cd CS-Cloth
 ```
 
-2. Make sure Docker is running on your machine.
+2. Create the env files used by the current stack.
 
-3. Start the full stack.
-
-```bash
-./compose up -d
-```
-
-4. Run the database migrations and seed the demo data.
-
-```bash
-./compose exec laravel-api php artisan migrate:fresh --seed
-```
-
-5. Create the Laravel storage symlink if item images are missing.
-
-```bash
-./compose exec laravel-api php artisan storage:link
-```
-
-6. Copy the `.env.example` files to `.env` and update the database credentials.
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-7. Change the following lines in backend/.env to activate OTP sending functionality when registering or resetting password.
-```bash
-MAIL_USERNAME=your-google-account@gmail.com (use your personal gmail)
-MAIL_PASSWORD=your-google-app-password (use your google app password from https://myaccount.google.com/apppasswords
-MAIL_FROM_ADDRESS="your-google-account@gmail.com" (use your personal gmail)
-```
-
-8. Open the app in your browser.
-
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost`
-- Mailpit: `http://localhost:8025`
-
-If you change dependencies or Dockerfiles later, rebuild with:
+3. If you want real OTP emails through Gmail, update these values in `backend/.env`:
 
 ```bash
-./compose up -d --build
+MAIL_USERNAME=your-google-account@gmail.com
+MAIL_PASSWORD=your-google-app-password (you can generate one here: https://myaccount.google.com/apppasswords)
+MAIL_FROM_ADDRESS="your-google-account@gmail.com"
 ```
 
-### Start the full stack
+If you do not change them, Mailpit is still available for local mail inspection.
 
-From the repository root:
+4. Start the stack.
 
 ```bash
 ./compose up -d
 ```
 
-This starts:
-
-- Laravel backend
-- SvelteKit frontend
-- MySQL
-- Redis
-- Mailpit
-
-### Common commands
-
-Start services:
+5. Initialize the database and storage.
 
 ```bash
-./compose up -d
-```
-
-Stop services:
-
-```bash
-./compose down
-```
-
-View logs:
-
-```bash
-./compose logs -f
-```
-
-Rebuild containers after dependency or Dockerfile changes:
-
-```bash
-./compose up -d --build
-```
-
-### URLs
-
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost`
-- Mailpit: `http://localhost:8025`
-
-### Database and app setup
-
-If you need a fresh seeded database:
-
-```bash
+./compose exec laravel-api php artisan key:generate
 ./compose exec laravel-api php artisan migrate:fresh --seed
-```
-
-If storage symlinks are required:
-
-```bash
 ./compose exec laravel-api php artisan storage:link
 ```
 
+6. Open the app.
+
+- Frontend: `http://localhost:3000`
+- Backend API root: `http://localhost`
+- Mailpit: `http://localhost:8025`
+
+Useful commands:
+
+```bash
+./compose down
+./compose logs -f
+./compose up -d --build
+```
+
+## Env Files
+
+Required:
+- `backend/.env`
+- `frontend/.env`
+
+Optional:
+- root `.env`
+
+The root `.env` is not required for the current application. The `./compose` wrapper only sources it if present so you can override shell-exported values such as `WWWUSER` and `WWWGROUP`. If you do nothing, the wrapper already falls back to your current user/group IDs.
+
+## Notes
+
+- `backend/.env.example` is the Docker-oriented template used by the current stack.
+- `frontend/.env.example` should keep `BACKEND_URL=http://laravel-api` for Docker networking.
+- Uploaded item images are served from `backend/storage/app/public/items`.
+- The frontend entry point is `/items`. The backend root is only an API status response.
+
 ## Seeded Demo Accounts
 
-After `./compose exec laravel-api php artisan migrate:fresh --seed`, these accounts are available:
+After `./compose exec laravel-api php artisan migrate:fresh --seed`:
 
 - Superadmin: `tan@cloth.com` / `asd123`
 - Admin: `admin@cloth.com` / `asd123`
@@ -214,96 +126,44 @@ After `./compose exec laravel-api php artisan migrate:fresh --seed`, these accou
 - User: `toruplaytube@gmail.com` / `asd123`
 - User: `somchai@cloth.com` / `asd123`
 
-## Important Configuration Notes
+## Screenshots
 
-- `./compose` is a small wrapper script around Docker Compose defined in [compose](/Users/Tan/Uni/WebTech/CS-Cloth/compose).
-- The stack uses the root [.env](/Users/Tan/Uni/WebTech/CS-Cloth/.env) together with the compose files below.
-- Backend runtime is currently MySQL/Redis/Mailpit oriented, not the old SQLite-only manual flow.
-- Uploaded item images are served from Laravel storage and stored under `backend/storage/app/public/items`.
-- The frontend root page is not a marketing landing page; the usable storefront starts at `/items`, and `/` redirects by role/session state.
-- Registration OTP and password reset testing depend on the mail service in the running stack.
+### Storefront Catalog
 
-## Compose Files
+![Storefront catalog](docs/screenshots/storefront-items.png)
 
-The repository uses:
+### Item Detail
 
-- [docker-compose.yml](/Users/Tan/Uni/WebTech/CS-Cloth/docker-compose.yml)
-- [backend/compose.yaml](/Users/Tan/Uni/WebTech/CS-Cloth/backend/compose.yaml)
-- [frontend/docker-compose.yml](/Users/Tan/Uni/WebTech/CS-Cloth/frontend/docker-compose.yml)
+![Item detail page](docs/screenshots/item-detail.png)
 
-Current note:
+### Cart And Checkout
 
-- `./compose up -d` is the intended way to run the system now.
-- The wrapper injects `docker-compose.yml` and `docker.override.yml`.
-- The frontend talks to the backend over the internal Docker network.
+![Cart and checkout](docs/screenshots/cart-checkout.png)
 
-## Screenshot Placeholders
+### Item's Q&A Section
 
-หน้าแสดงรายการสินค้าทั้งหมด
+![Customer questions](docs/screenshots/questions.png)
 
-- `docs/screenshots/storefront-items.png`
-  ![Storefront catalog showing featured merchandise and live stock badges](docs/screenshots/storefront-items.png)
+### Customer's Wallet
 
+![Wallet page](docs/screenshots/wallet.png)
 
-หน้าแสดงรายการสินค้าที่เลือก
+### Admin Inventory Management
 
-- `docs/screenshots/item-detail.png`
-  ![Item Detail Page](docs/screenshots/item-detail.png)
+![Admin inventory](docs/screenshots/admin-items.png)
 
+### Admin Orders Management
 
-หน้าการชำระเงิน
+![Admin orders](docs/screenshots/admin-orders.png)
 
-- `docs/screenshots/cart-checkout.png`
-  ![Cart Checkout Page](docs/screenshots/cart-checkout.png)
+### Admin Questions Answering
 
+![Admin question moderation](docs/screenshots/admin-questions.png)
 
-หน้าการจัดการสินค้าในระบบแอดมิน
+### Superadmin Reports Management
 
-- `docs/screenshots/admin-items.png`
-  ![Admin Inventory Page](docs/screenshots/admin-items.png)
+![Superadmin reports](docs/screenshots/superadmin-reports.png)
 
+### Superadmin User Management
 
-หน้าการจัดการรายการสั่งซื้อในระบบแอดมิน
-
-- `docs/screenshots/admin-orders.png`
-  ![Admin Orders Page](docs/screenshots/admin-orders.png)
-
-
-หน้าแสดงรายการคำถามและคำตอบ
-
-- `docs/screenshots/questions.png`
-  ![Customer Orders Page](docs/screenshots/questions.png)
-
-
-หน้าการตอบคำถามโดยแอดมิน
-
-- `docs/screenshots/admin-questions.png`
-  ![Admin Questions Page](docs/screenshots/admin-questions.png)
-
-
-หน้าการจัดการการตอบคำถามของแอดมิน
-
-- `docs/screenshots/superadmin-reports.png`
-  ![Superadmin Reports Page](docs/screenshots/superadmin-reports.png)
-
-
-หน้ากระเป๋าเงินและการเติมเงิน
-
-- `docs/screenshots/wallet.png`
-  ![Customer Wallet Page](docs/screenshots/wallet.png)
-
-
-หน้าจัดการผู้ใช้ในระบบ
-
-- `docs/screenshots/superadmin-users.png`
-  ![Superadmin Users Page](docs/screenshots/superadmin-users.png)
-
-
-## Resetting Local Data
-
-To rebuild the local database with fresh sample data:
-
-```bash
-cd backend
-php artisan migrate:fresh --seed
-```
+![Superadmin users](docs/screenshots/superadmin-users.png)
