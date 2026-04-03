@@ -1,7 +1,6 @@
 import { env } from '$env/dynamic/private';
 import type { RequestEvent } from '@sveltejs/kit';
 
-// 🔥 แก้ default ให้ตรงกับ Laravel Sail (port 80)
 const backendBase = env.BACKEND_URL ?? 'http://laravel-api';
 
 export class ApiError extends Error {
@@ -11,7 +10,6 @@ export class ApiError extends Error {
 	constructor(status: number, data: unknown) {
 		super(
 			typeof data === 'object' && data && 'message' in data
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				? String((data as any).message)
 				: `API error ${status}`
 		);
@@ -46,12 +44,10 @@ export async function backend<T>(
 		body = JSON.stringify(options.body);
 	}
 
-	// 🔐 แนบ token ถ้ามี
 	if (options.auth !== false && event.locals.authToken) {
 		headers.set('authorization', `Bearer ${event.locals.authToken}`);
 	}
 
-	// 🔥 ต่อ /api prefix
 	const url = `${backendBase}/api${path}`;
 
 	const response = await event.fetch(url, {
@@ -73,12 +69,10 @@ export async function backend<T>(
 	return data as T;
 }
 
-// helper ดึง error message
 export function getErrorMessage(error: unknown, fallback = 'Something went wrong.') {
 	if (isApiError(error)) {
 		if (typeof error.data === 'object' && error.data && 'errors' in error.data) {
 			const firstEntry = Object.values(
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(error.data as any).errors as Record<string, string[]>
 			)[0];
 
@@ -88,7 +82,6 @@ export function getErrorMessage(error: unknown, fallback = 'Something went wrong
 		}
 
 		if (typeof error.data === 'object' && error.data && 'message' in error.data) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return String((error.data as any).message);
 		}
 	}
