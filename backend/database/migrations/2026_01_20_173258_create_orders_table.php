@@ -19,11 +19,6 @@ return new class extends Migration {
 
             $table->decimal('total_price', 10, 2);
 
-            $table->foreignId('shipping_address_id')
-                ->nullable()
-                ->constrained('user_addresses')
-                ->nullOnDelete();
-
             $table->text('shipping_address')->nullable();
 
             $table->json('shipping_address_snapshot')->nullable();
