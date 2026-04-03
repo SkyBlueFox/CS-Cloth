@@ -104,32 +104,52 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-4. Change the following lines in backend/.env to activate OTP sending functionality when registering or resetting password.
+4. Install backend Composer dependencies before starting Docker. This is required because `backend/vendor` is not committed and the Laravel container build uses Sail files from that directory.
+```bash
+cd backend
+composer install
+cd ..
+```
+
+If you do not have Composer installed locally, use Docker instead:
+```bash
+cd backend
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/app" \
+    -w /app \
+    composer:latest \
+    composer install
+cd ..
+```
+
+5. Change the following lines in `backend/.env` to activate OTP sending functionality when registering or resetting password.
 ```bash
 MAIL_USERNAME=your-google-account@gmail.com (use your personal gmail)
 MAIL_PASSWORD=your-google-app-password (use your google app password from https://myaccount.google.com/apppasswords
 MAIL_FROM_ADDRESS="your-google-account@gmail.com" (use your personal gmail)
 ```
 
-5. Start the full stack.
+6. Start the full stack.
 
 ```bash
 ./compose up -d
 ```
 
-6. Run the database migrations and seed the demo data.
+7. Run the database migrations and seed the demo data.
 
 ```bash
+./compose exec laravel-api php artisan key:generate
 ./compose exec laravel-api php artisan migrate:fresh --seed
 ```
 
-7. Create the Laravel storage symlink if item images are missing.
+8. Create the Laravel storage symlink if item images are missing.
 
 ```bash
 ./compose exec laravel-api php artisan storage:link
 ```
 
-8. Open the app in your browser.
+9. Open the app in your browser.
 
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost`
@@ -217,11 +237,13 @@ After `./compose exec laravel-api php artisan migrate:fresh --seed`, these accou
 ## Important Configuration Notes
 
 - `./compose` is a small wrapper script around Docker Compose defined in [compose](/Users/Tan/Uni/WebTech/CS-Cloth/compose).
-- The stack uses the root [.env](/Users/Tan/Uni/WebTech/CS-Cloth/.env) together with the compose files below.
+- The required env files for normal setup are `backend/.env` and `frontend/.env`.
+- The root [.env](/Users/Tan/Uni/WebTech/CS-Cloth/.env) is optional. `./compose` will source it if present, but it falls back to your current user/group IDs when it is absent.
 - Backend runtime is currently MySQL/Redis/Mailpit oriented, not the old SQLite-only manual flow.
 - Uploaded item images are served from Laravel storage and stored under `backend/storage/app/public/items`.
 - The frontend root page is not a marketing landing page; the usable storefront starts at `/items`, and `/` redirects by role/session state.
 - Registration OTP and password reset testing depend on the mail service in the running stack.
+- If you keep multiple local clones of this repo, the fixed Compose project name in `docker-compose.yml` can make one clone reuse another clone's containers.
 
 ## Compose Files
 
@@ -301,9 +323,8 @@ Current note:
 
 ## Resetting Local Data
 
-To rebuild the local database with fresh sample data:
+To rebuild the local database with fresh sample data from the repository root:
 
 ```bash
-cd backend
-php artisan migrate:fresh --seed
+./compose exec laravel-api php artisan migrate:fresh --seed
 ```
