@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,13 +24,13 @@ class DatabaseSeeder extends Seeder
         ];
 
         DB::transaction(function () use ($tables): void {
-            DB::statement('PRAGMA foreign_keys = OFF');
+            Schema::disableForeignKeyConstraints();
 
             foreach ($tables as $table) {
                 DB::table($table)->delete();
             }
 
-            DB::statement('PRAGMA foreign_keys = ON');
+            Schema::enableForeignKeyConstraints();
 
             DB::table('users')->insert([
                 [
